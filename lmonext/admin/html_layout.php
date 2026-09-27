@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: html_layout.php
- * Fileversion: 1.7.0
+ * Fileversion: 1.8.0
  *
  * PHP version 8.2
  *
@@ -18,8 +18,15 @@
 <nav class="sidebar">
   <div class="sidebar-logo"><img src="assets/logo.svg" alt="LMOnext" style="height:34px;width:auto;display:block"></div>
   <?php $coreUpdate = function_exists('checkCoreUpdateAvailable') ? checkCoreUpdateAvailable() : null; ?>
-  <?php if ($coreUpdate !== null) { ?>
-  <a href="<?= h($coreUpdate['download']) ?>" target="_blank" rel="noopener"
+  <?php if ($coreUpdate !== null) {
+    // Der Banner verlinkt jetzt bevorzugt auf die Forenankündigung
+    // (announcement), die das Update beschreibt, statt auf die
+    // reine Download-Datei - deutlich hilfreicher für den Admin.
+    // Fällt zurück auf download, falls announcement leer ist
+    //(ältere check_version.json ohne dieses Feld).
+    $updateLink = ($coreUpdate['announcement'] ?? '') !== '' ? $coreUpdate['announcement'] : $coreUpdate['download'];
+  ?>
+  <a href="<?= h($updateLink) ?>" target="_blank" rel="noopener"
      class="sidebar-update-notice" title="<?= h(t('nav_update_tooltip')) ?>">
     🔔 <?= h(t('nav_update_available', ['version' => $coreUpdate['version']])) ?>
   </a>

@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: bootstrap.php
- * Fileversion: 1.30.1
+ * Fileversion: 1.31.0
  *
  * PHP version 8.2
  *
@@ -291,13 +291,15 @@ function getAppVersion() : string
  * Prüfung reicht völlig) zwischengespeichert, damit nicht bei jedem
  * Admin-Seitenaufruf ein externer Request nötig ist.
  *
- * Liefert bei verfügbarem Update ['version' => '1.12.0', 'download' => 'https://...'],
+ * Liefert bei verfügbarem Update ['version' => '1.12.0', 'download' => 'https://...',
+ * 'announcement' => 'https://...' (Forenankündigung, kann leerer String sein
+ * bei einer älteren check_version.json ohne dieses Feld)],
  * sonst null - sowohl wenn kein Update vorliegt als auch bei JEDEM Fehler
  * (Server nicht erreichbar, ungültiges JSON, fehlende Felder). Ein
  * Fehlschlag hier darf niemals eine Admin-Seite zum Absturz bringen oder
  * spürbar verlangsamen (5s Timeout, defensiv mit try/catch umschlossen).
  *
- * @return array{version:string,download:string}|null
+ * @return array{version:string,download:string,announcement:string}|null
  */
 function checkCoreUpdateAvailable() : ?array
 {
@@ -341,9 +343,10 @@ function checkCoreUpdateAvailable() : ?array
             $data     = json_decode($body, true);
             $remote   = (string)($data['stable']['current'] ?? '');
             $download = (string)($data['stable']['download'] ?? '');
+            $announcement = (string)($data['stable']['announcement'] ?? '');
             $local    = getAppVersion();
             if ($remote !== '' && $download !== '' && $local !== '' && version_compare($remote, $local, '>')) {
-                $update = ['version' => $remote, 'download' => $download];
+                $update = ['version' => $remote, 'download' => $download, 'announcement' => $announcement];
             }
         }
     } catch (Throwable) {

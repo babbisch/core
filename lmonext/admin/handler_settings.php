@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: handler_settings.php
- * Fileversion: 1.14.0
+ * Fileversion: 1.15.0
  *
  * PHP version 8.2
  *
@@ -326,3 +326,22 @@ if ($action === 'save_liga_settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect($redirect);
 }
 
+// ────────────────────────── install.php löschen ─────────────────────────────
+// Zusammen mit dem Sicherheitshinweis in html_layout.php: bleibt install.php
+// nach einem FTP-Update liegen, kann sie per Klick direkt aus dem Admin
+// entfernt werden. CSRF wird zentral für jeden POST geprüft (siehe
+// bootstrap.php); nur diese eine, fest verdrahtete Datei wird gelöscht -
+// kein Dateiname aus der Anfrage.
+if ($action === 'delete_install_php' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireLogin();
+    $installFile = dirname(__DIR__) . '/install.php';
+    if (!is_file($installFile)) {
+        flash(t('install_delete_gone'));
+    } elseif (@unlink($installFile)) {
+        logAdminAction('install_php_deleted', 'install.php');
+        flash(t('install_delete_ok'));
+    } else {
+        flash(t('install_delete_failed'), 'error');
+    }
+    redirect('?action=dashboard');
+}

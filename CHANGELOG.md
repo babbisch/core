@@ -267,6 +267,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/data_loader.php
 
+- Changelog: 1.16.0 - Bugfix (Fehlerlog: 3x "Trying to access array offset on false" in view_liga_spieltage.php): ruft man liga_spieltage mit der ID einer nicht (mehr) existierenden Liga auf (gelöscht oder veralteter Link), lieferte fetch() false, $ligaDetail war durch die übrigen Schlüssel aber trotzdem "wahr" und die Ansicht griff auf false['id'] zu. Jetzt Meldung "Liga nicht gefunden" (vorhandener Schlüssel ls_liga_not_found) und Rücksprung zur Übersicht.
 - Changelog: 1.15.0 - Aktion "liga_detail" umgebaut zum "Liga öffnen"-Direkteinstieg: lädt keine Übersichtsdaten mehr, sondern ermittelt per resolveLigaEntrySpieltagNr() (siehe admin/bootstrap.php 1.28.0) den aktuellen Spieltag und leitet per redirect() direkt zu "?action=spieltag&liga_id=…&nr=…" weiter (Fallback auf die neue Aktion "liga_spieltage", falls die Liga noch keine Spieltage hat). Die bisherige Datenladung für die Spieltage-Übersicht läuft jetzt unter der neuen Aktion "liga_spieltage" (unverändert, nur umbenannt). Im Spieltag-Block: ruft bei jedem gefundenen Spieltag rememberLigaLastSpieltag() auf, damit der Direkteinstieg beim nächsten Öffnen der Liga wieder dorthin zurückführt; lädt zusätzlich die erwartete Rundenanzahl (liga_options "Rounds") in $spieltagData["expected_rounds"] für den KO-Rundenhinweis im jetzt auch auf dieser Seite eingebundenen Navigationsblock (siehe admin/view_liga_nav.php).
 - Changelog: 1.14.0 - Bugfix/Feature (die vorherige feste Sortierung "ORDER BY l.datum DESC" für archivierte Ligen ergab keine sinnvolle Reihenfolge - batch-weise importierte Ligen erschienen in Import-Reihenfolge statt Saison-Reihenfolge, da "datum" offenbar eher dem Erstellungszeitpunkt des DB-Eintrags entspricht als dem Saison-Startdatum): archiv-Aktion unterstützt jetzt eine per Klick umschaltbare Sortierung (GET-Parameter sort=id|name|datum, dir=asc|desc, Whitelist-geprüft gegen SQL-Injection, da ORDER BY keine Bind-Parameter erlaubt) statt einer festen Vorgabe. Default weiterhin "name" absteigend (String-Sortierung bei gleichem Liga-Basisnamen mit Saison-Suffix ergibt korrekt neueste-zuerst, z.B. "2025/26" vor "1963/64" - mit einem Sortier-Test verifiziert).
 - Changelog: 1.13.0 - Ruft jetzt adminMigrateFavSelTeamToStableId() (admin/bootstrap.php 1.26.0) statt der nicht geladenen \LMOnext\Liga\LigaService::migrateFavSelTeamToStableId() auf - siehe dortiger Changelog-Eintrag für den vollständigen, kritischen Bugfix-Hintergrund.
@@ -381,6 +382,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/handler_settings.php
 
+- Changelog: 1.15.0 - Neue Aktion delete_install_php (löscht die fest verdrahtete Datei install.php im Installationsverzeichnis, nur per POST (CSRF wird zentral geprüft), mit requireLogin() und Eintrag im Admin-Log. Kein Dateiname aus der Anfrage. Meldet auch, wenn die Datei schon weg ist oder nicht gelöscht werden konnte (fehlende Schreibrechte, dann Hinweis auf FTP).
 - Changelog: 1.14.0 - Speichert die neue Einstellung ShowKarte (siehe admin/view_liga_settings.php 1.19.0), mit derselben Absicherung wie bei "stats"/"ticker": nur wenn das team-notizen-Addon installiert ist, sonst würde der Wert bei jedem Speichern dieses Tabs unbemerkt auf '0' zurückgesetzt.
 - Changelog: 1.13.0 - Speichert jetzt zusätzlich GtToreBeideVerlieren, siehe admin/view_liga_settings.php 1.17.0.
 - Changelog: 1.12.0 - Speichert jetzt zusätzlich tickernotizen/tickerbreite/tickergeschwindigkeit sowie den erweiterten tickerart-Wert "ergebnisse_favorit" (Favoriten-Ergebnisticker, Spielnotizen, konfigurierbare Breite/Geschwindigkeit - siehe addon/ticker/TickerRenderer.php 1.1.0 im ticker-Addon für den fachlichen Hintergrund), an beiden Speicherstellen, weiterhin mit isEnabled('ticker')-Absicherung.
@@ -438,6 +440,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/html_layout.php
 
+- Changelog: 1.10.0 - Der Sicherheitshinweis zu einer liegen gebliebenen install.php (1.9.0) bekommt zusätzlich einen Button "Jetzt löschen" (mit Rückfrage), der die Datei direkt aus dem Admin entfernt.
+- Changelog: 1.9.0 - Sicherheitshinweis im Admin-Bereich, wenn install.php noch im Installationsverzeichnis liegt (z.B. weil sie bei einem FTP-Update aus dem Update-Paket mit hochgeladen wurde). Bisher blieb jeder Hinweis aus. install.php sperrt sich zwar selbst (403-Seite, sobald config.php existiert), gehört auf einer laufenden Installation aber trotzdem gelöscht. Erscheint als rote Meldung oberhalb des Seiteninhalts, verschwindet automatisch nach dem Löschen der Datei.
 - Changelog: 1.8.0 - Der Update-Hinweis in der Sidebar verlinkt jetzt bevorzugt auf announcement (Forenankündigung) statt direkt auf download, mit Rückfall auf download falls announcement leer ist (auch bei einem bereits bestehenden, noch alten Cache-Eintrag ohne dieses Feld) - siehe checkCoreUpdateAvailable() in bootstrap.php.
 - Changelog: 1.7.0 - Neuer Update-Hinweis über dem Navigationspunkt "⚽ Ligen" (siehe checkCoreUpdateAvailable() in admin/bootstrap.php 1.29.0): erscheint nur, wenn tatsächlich eine neuere Version als die laufende angekündigt ist, verlinkt als target="_blank" direkt auf die Download-URL aus check_version.json.
 - Changelog: 1.6.0 - Admin-Sidebar zeigt jetzt den vollständigen Copyright-/Spenden-Hinweis statt nur der schlichten Versionsnummer (Beitrag: Torsten Hofmann).
@@ -906,6 +910,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/de.php
 
+- Changelog: 1.52.0 - Neue Schlüssel install_delete_btn/_confirm/_ok/_gone/_failed (Löschen-Button für install.php).
+- Changelog: 1.51.0 - Neuer Schlüssel install_leftover_warning (Hinweis auf liegen gebliebene install.php).
 - Changelog: 1.50.0 - Neuer Sprachschlüssel ls_cb_karte ("Karte anzeigen") für die neue ShowKarte-Einstellung.
 - Changelog: 1.49.1 - dash_col_created/arch_sort_datum von "Erstellt" auf "Zuletzt gespeichert" korrigiert - beide zeigen/sortieren liga.datum, das seit handler_liga.php 1.6.2 bei jeder Ergebnis-Speicherung aktualisiert wird, keine reine Erstellzeit mehr ist.
 - Changelog: 1.49.0 - Neue Sprachschlüssel nav_update_available/nav_update_tooltip für den neuen Core-Update-Hinweis in der Sidebar (siehe html_layout.php 1.7.0).
@@ -1018,6 +1024,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/en.php
 
+- Changelog: 1.51.0 - New keys install_delete_btn/_confirm/_ok/_gone/_failed (delete button for install.php).
+- Changelog: 1.50.0 - New key install_leftover_warning (notice about leftover install.php).
 - Changelog: 1.49.0 - New language key ls_cb_karte ("Show map") for the new ShowKarte setting.
 - Changelog: 1.48.1 - dash_col_created/arch_sort_datum corrected from "Created" to "Last saved" - both display/sort liga.datum, which has been updated on every result save since handler_liga.php 1.6.2 and is no longer a pure creation timestamp.
 - Changelog: 1.48.0 - New language keys nav_update_available/nav_update_tooltip for the new core update notice in the sidebar (see html_layout.php 1.7.0).

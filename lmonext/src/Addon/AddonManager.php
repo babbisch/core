@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Addon/AddonManager.php
- * Fileversion: 1.10.0
+ * Fileversion: 1.10.1
  *
  * PHP version 8.2
  *
@@ -117,6 +117,17 @@ class AddonManager
 
         foreach ($dirs as $dir) {
             if ($dir === '.' || $dir === '..') {
+                continue;
+            }
+
+            // BUGFIX: Liegen im addon/-Ordner reine DATEIEN (z.B. .htaccess),
+            // wurde per is_file('<datei>/addon.json') ein Pfad UNTER einer
+            // Datei gebildet - das loest auf open_basedir-Hosts (Plesk & Co.)
+            // die E_WARNING "open_basedir restriction in effect" aus, obwohl
+            // gar kein Addon gemeint war. Nicht-Verzeichnisse sind per
+            // Definition keine Addons und werden VOR dem Manifest-Pfad
+            // uebersprungen.
+            if (!is_dir($this->addonDir . $dir)) {
                 continue;
             }
 
@@ -1859,10 +1870,24 @@ Require all denied
      * Umgebungen unbegrenzt haengen, weil PHP_BINARY dort nicht auf einen
      * CLI-tauglichen Interpreter zeigt).
      *
+     * BUGFIX (Live-Report: jede Addon-Installation wurde auf dem Zielhost
+     * mit "kein gültiger PHP-Code" abgelehnt, obwohl die Dateien sauber
+     * linten): Zwei Ursachen -
+     *  1) PHP_BINARY zeigt auf PHP-FPM-Hosts (Plesk & Co.) haeufig auf den
+     *     FPM-Worker (unterstuetzt KEIN -l) - teils haengt der Aufruf, teils
+     *     beendet er sich sofort mit Exit!=0. Ein Binary darf nur dann ueber
+     *     die Addon-Dateien urteilen, wenn es vorher eine Kontroll-Datei mit
+     *     reiner PHP-8.2-Syntax sauber gelintet hat (Kandidaten-Liste plus
+     *     Kontrolle, siehe pickLintBinary()); sonst Pruefung fail-open.
+     *  2) proc_get_status() 'reaped' den Kindprozess, sobald es
+     *     running=false meldet - ein DANACH aufgerufenes proc_close()
+     *     liefert unzuverlaessig -1 zurueck, obwohl php -l mit Exit 0
+     *     durchlief. Der Exit-Code wird daher aus dem Status-Array
+     *     gelesen; proc_close() dient nur der Ressourcen-Freigabe.
+     *
      * @return bool|null true = gültige Syntax, false = ungültige Syntax
      *                    (Upload ablehnen), null = konnte nicht geprüft
-     *                    werden (z.B. exec/proc_open gesperrt oder Timeout
-     *                    erreicht) - wird NICHT als Ablehnungsgrund gewertet.
+     *                    werden - wird NICHT als Ablehnungsgrund gewertet.
      */
     private function lintPhpFileWithTimeout(string $filePath, float $timeoutSeconds = 3.0)
     {
@@ -1876,9 +1901,117 @@ Require all denied
             return null;
         }
 
-        $phpBinary = PHP_BINARY !== '' ? PHP_BINARY : 'php';
+        $phpBinary = $this->pickLintBinary(dirname($filePath), $timeoutSeconds);
+        if ($phpBinary === null) {
+            // Kein Kandidat kann linten (FPM-Host ohne CLI-php, gesperrtes
+            // proc_open, open_basedir): Pruefung fail-open ueberspringen.
+            return null;
+        }
+
+        return $this->runLint($phpBinary, $filePath, $timeoutSeconds);
+    }
+
+    /**
+     * Ermittelt ein Binary, das "php -l" auf PHP-8.2-Syntax anwenden kann.
+     * Vor der ersten echten Pruefung wird einmalig pro Request eine
+     * Kontroll-Datei im SELBEN Verzeichnis wie die Addon-Datei angelegt
+     * (gleicher open_basedir-Kontext) und gegen alle Kandidaten gelintet.
+     * Nur ein Binary, das die Kontrolle besteht, darf urteilen.
+     *
+     * @return string|null Binary-Pfad oder null (kein tauglicher Kandidat)
+     */
+    private function pickLintBinary(string $lintContextDir, float $timeoutSeconds): ?string
+    {
+        static $usableBinary = null;
+        if ($usableBinary !== null) {
+            return $usableBinary;
+        }
+        $usableBinary = null;
+
+        $probeFile = $lintContextDir . '/.lmo_lint_probe_' . getmypid() . '.php';
+        // Reine PHP-8.2-Syntax: readonly class + Konstruktor-Promotion.
+        $probeCode = '<?php final readonly class LmoLintProbe { '
+            . 'public function __construct(public int $ok = 1) {} }' . "\n";
+        if (@file_put_contents($probeFile, $probeCode) === false) {
+            return null;
+        }
+        try {
+            foreach ($this->lintBinaryCandidates() as $bin) {
+                if ($this->runLint($bin, $probeFile, $timeoutSeconds) === true) {
+                    $usableBinary = $bin;
+                    break;
+                }
+            }
+        } finally {
+            @unlink($probeFile);
+        }
+        return $usableBinary;
+    }
+
+    /**
+     * Lint-Binary-Kandidaten in Prioritaetsreihenfolge. PHP_BINARY zeigt auf
+     * PHP-FPM-Hosts haeufig auf den FPM-Worker (unterstuetzt KEIN -l) - ein
+     * solches Binary wurde frueher faelschlich als "Syntaxfehler in der
+     * Addon-Datei" gewertet. "php" aus dem PATH kann auf manchen Hosts ein
+     * Wrapper sein; explizite Versionen decken Plesk-/Debian-Layouts ab.
+     *
+     * @return list<string>
+     */
+    private function lintBinaryCandidates(): array
+    {
+        $candidates = [];
+        $candidates[] = PHP_BINARY;
+        $candidates[] = 'php';
+        $candidates[] = 'php8.4';
+        $candidates[] = 'php8.3';
+        $candidates[] = 'php8.2';
+        $candidates[] = 'php8.1';
+        $candidates[] = '/usr/bin/php';
+        $candidates[] = '/usr/local/bin/php';
+
+        $unique = [];
+        foreach ($candidates as $c) {
+            $key = strtolower($c);
+            if (!isset($unique[$key])) {
+                $unique[$key] = $c;
+            }
+        }
+        return array_values($unique);
+    }
+
+    /**
+     * Fuehrt "$binary -l $filePath" mit hartem Zeitlimit aus.
+     *
+     * @return bool|null true = Exit 0, false = Exit != 0,
+     *                    null = Prozess nicht startbar/Timeout
+     */
+    private function runLint(string $phpBinary, string $filePath, float $timeoutSeconds): ?bool
+    {
+        if ($phpBinary === '' || !is_file($filePath)) {
+            return null;
+        }
         $descriptors = [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
-        $process = @proc_open([$phpBinary, '-l', $filePath], $descriptors, $pipes);
+
+        // PATCH v2 (1.9.39d-Analog, Live-Report Zielhost 2026-09-28:
+        // proc_open(): posix_spawn() failed: No such file or directory im
+        // Fehlerlog): Beim Kandidaten-Probing werden bewusst auch Binaries
+        // versucht, die auf diesem Host nicht existieren ('php' ausserhalb
+        // des FPM-PATH, andere PHP-Versionen). Der Spawn-Versuch auf ein
+        // fehlendes Binary erzeugt eine posix_spawn-Warnung - und manche
+        // Umgebungen loggen Warnungen auch trotz @-Unterdrueckung (eigene
+        // set_error_handler-Handler ignorieren die Unterdrueckung). Der
+        // Spawn wird deshalb kurzzeitig von einem stillen Handler ummantelt:
+        // ein Fehlschlag ist erwartbar, ausschliesslich ueber
+        // is_resource() sichtbar und gehoert nicht ins Fehlerlog.
+        $process = null;
+        set_error_handler(static function (): bool {
+            return true;
+        });
+        try {
+            $process = proc_open([$phpBinary, '-l', $filePath], $descriptors, $pipes);
+        } finally {
+            restore_error_handler();
+        }
         if (!is_resource($process)) {
             return null;
         }
@@ -1888,6 +2021,7 @@ Require all denied
         stream_set_blocking($pipes[2], false);
 
         $start = microtime(true);
+        $status = ['running' => true];
         do {
             $status = proc_get_status($process);
             if (!$status['running']) {
@@ -1898,7 +2032,8 @@ Require all denied
 
         if ($status['running']) {
             // Zeitlimit erreicht: Prozess zwangsweise beenden, KEIN
-            // Ablehnungsgrund - siehe Docblock oben.
+            // Ablehnungsgrund - ein haengender Interpreter sagt nichts
+            // ueber die Syntax der geprueften Datei aus.
             @proc_terminate($process, 9);
             fclose($pipes[1]);
             fclose($pipes[2]);
@@ -1908,10 +2043,16 @@ Require all denied
 
         fclose($pipes[1]);
         fclose($pipes[2]);
-        $exitCode = proc_close($process);
+
+        // WICHTIG: proc_get_status() 'reaped' den Kindprozess bereits, sobald
+        // es running=false meldet. Ein DANACH aufgerufenes proc_close()
+        // liefert unzuverlaessig -1 zurueck - obwohl php -l mit Exit 0
+        // durchlief. Der Exit-Code muss daher aus dem Status-Array gelesen
+        // werden; proc_close() dient nur der Ressourcen-Freigabe.
+        $exitCode = $status['exitcode'];
+        proc_close($process);
         return $exitCode === 0;
     }
-
     public function installFromZip(string $zipPath): array
     {
         if (!class_exists('ZipArchive')) {

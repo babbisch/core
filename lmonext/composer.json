@@ -2,13 +2,18 @@
     "name": "lmonext-org/core",
     "type": "project",
     "description": "Liga Manager Online next (or LMOnext for short) is free PHP software for managing sports leagues and their standings online using a database.",
-    "homepage": "https://github.com/lmonext-org",
+    "homepage": "https://github.com/lmonext-org/core",
     "version": "1.11.6",
     "time": "2026-09-27",
     "keywords": [
         "LMOnext",
-        "Liga Manager Online next",
-        "Sportligen verwalten"
+        "Liga Manager Online next Generation",
+        "Sportligen verwalten",
+        "Manage sports leagues",
+        "Gestionar ligas deportivas",
+        "Gestire i campionati sportivi",
+        "Beheer sportcompetities",
+        "Gérer les ligues sportives"
     ],
     "license": "GPL-3.0-only",
     "authors": [

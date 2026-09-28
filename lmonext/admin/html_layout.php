@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: html_layout.php
- * Fileversion: 1.8.0
+ * Fileversion: 1.10.0
  *
  * PHP version 8.2
  *
@@ -60,3 +60,19 @@
   </div>
   <div class="content">
     <?= renderFlash($flash ?? null) ?>
+    <?php
+    // Wird eine bestehende Installation per FTP aktualisiert
+    // und dabei die install.php aus dem Update-Paket mit hochgeladen, blieb bisher
+    // jeder Hinweis darauf aus. install.php sperrt sich zwar selbst (403-Seite,
+    // sobald config.php existiert), gehört auf einer LIVE-Installation aber
+    // trotzdem gelöscht - Restrisiko und unnötige Angriffsfläche vermeiden.
+    if (is_file(dirname(__DIR__) . '/install.php')) { ?>
+    <div class="flash error" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <span>⚠️ <?= t('install_leftover_warning') ?></span>
+      <form method="post" action="?action=delete_install_php" style="margin:0"
+            onsubmit="return confirm('<?= h(t('install_delete_confirm')) ?>')">
+        <?= csrfField() ?>
+        <button type="submit" class="btn btn-danger btn-sm">🗑️ <?= h(t('install_delete_btn')) ?></button>
+      </form>
+    </div>
+    <?php } ?>

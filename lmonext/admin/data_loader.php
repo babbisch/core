@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: data_loader.php
- * Fileversion: 1.15.0
+ * Fileversion: 1.16.0
  *
  * PHP version 8.2
  *
@@ -65,6 +65,10 @@ if (isLoggedIn()) {
             $lid = (int)$_GET['id'];
             $s = $db->prepare('SELECT * FROM '.tbl('liga').' WHERE id=?');
             $s->execute([$lid]); $ligaDetail['liga'] = $s->fetch();
+            if ($ligaDetail['liga'] === false) {
+                flash(t('ls_liga_not_found'), 'error');
+                redirect('?action=dashboard');
+            }
             $s2 = $db->prepare('SELECT g.id,g.name,g.kurz,g.mittel FROM '.tbl('teams_global').' g JOIN '.tbl('liga_teams').' lt ON lt.team_id=g.id WHERE lt.liga_id=? ORDER BY g.name');
             $s2->execute([$lid]); $ligaDetail['teams'] = $s2->fetchAll();
             $s3 = $db->prepare('SELECT s.id,s.nummer,s.start,COUNT(p.id) AS partie_count,SUM(CASE WHEN p.h_tore IS NOT NULL THEN 1 ELSE 0 END) AS gespielt FROM '.tbl('liga_spieltage').' s LEFT JOIN '.tbl('liga_partien').' p ON p.spieltag_id=s.id WHERE s.liga_id=? GROUP BY s.id,s.nummer,s.start ORDER BY s.nummer');

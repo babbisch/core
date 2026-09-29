@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: frontend/data_liga.php
- * Fileversion: 3.7.0
+ * Fileversion: 3.8.0
  *
  * PHP version 8.2
  *
@@ -189,6 +189,12 @@ function renderTeamLogoImg(int $teamId, bool $showLogos) : string
 function renderTeamLogoImgWrapped(int $teamId, bool $showLogos) : string
 {
     return \LMOnext\Liga\LigaService::renderTeamLogoImgWrapped($teamId, $showLogos);
+}
+
+/** Mannschaftslogos anzeigen? Globale Einstellung, Rückfall auf die alte Liga-Option - siehe TeamFormattingTrait::showTeamLogos(). */
+function showTeamLogos(array $opts) : bool
+{
+    return \LMOnext\Liga\LigaService::showTeamLogos($opts);
 }
 
 function partieTeamNameWithLogo(array $partie, string $side, bool $showLogos, bool $linkHomepage = false) : string

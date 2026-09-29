@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: view_liga_settings.php
- * Fileversion: 1.19.0
+ * Fileversion: 1.20.0
  *
  * PHP version 8.2
  *
@@ -449,10 +449,6 @@ if ($tab === 'grundwerte') { ?>
             <tr>
               <td style="text-align:right;padding:7px 12px;font-size:.85rem;color:var(--muted)"><?= h(t('ls_cb_spielplaene')) ?></td>
               <td style="padding:5px 10px"><input type="checkbox" name="Plan" value="1"<?= $oc('Plan')?' checked':'' ?>></td>
-            </tr>
-            <tr>
-              <td style="text-align:right;padding:7px 12px;font-size:.85rem;color:var(--muted)"><?= h(t('ls_label_show_logos')) ?></td>
-              <td style="padding:5px 10px"><input type="checkbox" name="ShowLogos" value="1"<?= $oc('ShowLogos')?' checked':'' ?>></td>
             </tr>
 <?php if (!$isKO) { ?>
             <tr>

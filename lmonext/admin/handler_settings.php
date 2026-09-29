@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: handler_settings.php
- * Fileversion: 1.15.0
+ * Fileversion: 1.16.0
  *
  * PHP version 8.2
  *
@@ -71,7 +71,6 @@ if ($action === 'save_liga_settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 $save('ShowSpielfrei', isset($_POST['ShowSpielfrei']) ? '1' : '0');
                 $save('Plan',       isset($_POST['Plan'])       ? '1' : '0');
                 $save('Tabelle',    isset($_POST['Tabelle'])    ? '1' : '0');
-                $save('ShowLogos',  isset($_POST['ShowLogos'])  ? '1' : '0');
                 $save('Kreuz',      isset($_POST['Kreuz'])      ? '1' : '0');
                 // "stats" (Spielerstatistik-Anzeige) nur speichern, wenn das
                 // player-Addon installiert ist - die Checkbox ist sonst in

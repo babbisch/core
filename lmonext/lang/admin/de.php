@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: lang/admin/de.php
- * Fileversion: 1.52.0
+ * Fileversion: 1.53.0
  *
  * PHP version 8.2
  *
@@ -801,6 +801,8 @@ return [
     'settings_hint_show_language_switcher'  => 'Wenn nein, wird die Sprachauswahl für Besucher auf allen Seiten der Besucheransicht ausgeblendet.',
     'settings_label_show_back_link'        => 'Liga-Übersicht anzeigen?',
     'settings_hint_show_back_link'         => 'Wenn nein, wird sowohl der "← Zur Übersicht"-Link auf der Liga-Detailseite als auch die komplette Liga-Auswahl auf der Startseite (aktive Ligen + Archiv) für Besucher ausgeblendet. Ligen sind dann nur noch direkt über liga.php?id=LIGA_ID erreichbar – gedacht für Betreiber, die nur eine einzelne, feste Liga per iframe/include auf einer fremden Webseite einbinden möchten (entspricht "Ligaauswahl" im alten LMO).',
+    'settings_label_show_team_logos'       => 'Mannschaftslogos anzeigen?',
+    'settings_hint_show_team_logos'        => 'Gilt für alle Ligen und Pokale in der Besucheransicht (Ergebnisse, Tabelle, Spielplan usw.). Ersetzt die frühere Einstellung "Logo anzeigen" in den einzelnen Ligen.',
 
     // ── Wartung (Datenbank-Backup/Wiederherstellung) ──────────────────────────
     'wartung_tab_wartung'             => 'Wartung',

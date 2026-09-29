@@ -382,7 +382,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/handler_settings.php
 
-- Changelog: 1.15.0 - Neue Aktion delete_install_php (löscht die fest verdrahtete Datei install.php im Installationsverzeichnis, nur per POST (CSRF wird zentral geprüft), mit requireLogin() und Eintrag im Admin-Log. Kein Dateiname aus der Anfrage. Meldet auch, wenn die Datei schon weg ist oder nicht gelöscht werden konnte (fehlende Schreibrechte, dann Hinweis auf FTP).
+- Changelog: 1.16.0 - Liga-Einstellungen speichern die Option ShowLogos nicht mehr (ersetzt durch die globale Einstellung "Mannschaftslogos anzeigen?"). Bereits gespeicherte Werte bleiben unangetastet und dienen nur noch als Rückfall, solange die globale Einstellung nie gesetzt wurde.
+- Changelog: 1.15.0 - Neue Aktion delete_install_php löscht die fest verdrahtete Datei install.php im Installationsverzeichnis, nur per POST (CSRF wird zentral geprüft), mit requireLogin() und Eintrag im Admin-Log. Kein Dateiname aus der Anfrage. Meldet auch, wenn die Datei schon weg ist oder nicht gelöscht werden konnte (fehlende Schreibrechte, dann Hinweis auf FTP).
 - Changelog: 1.14.0 - Speichert die neue Einstellung ShowKarte (siehe admin/view_liga_settings.php 1.19.0), mit derselben Absicherung wie bei "stats"/"ticker": nur wenn das team-notizen-Addon installiert ist, sonst würde der Wert bei jedem Speichern dieses Tabs unbemerkt auf '0' zurückgesetzt.
 - Changelog: 1.13.0 - Speichert jetzt zusätzlich GtToreBeideVerlieren, siehe admin/view_liga_settings.php 1.17.0.
 - Changelog: 1.12.0 - Speichert jetzt zusätzlich tickernotizen/tickerbreite/tickergeschwindigkeit sowie den erweiterten tickerart-Wert "ergebnisse_favorit" (Favoriten-Ergebnisticker, Spielnotizen, konfigurierbare Breite/Geschwindigkeit - siehe addon/ticker/TickerRenderer.php 1.1.0 im ticker-Addon für den fachlichen Hintergrund), an beiden Speicherstellen, weiterhin mit isEnabled('ticker')-Absicherung.
@@ -408,6 +409,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/handler_user.php
 
+- Changelog: 1.10.0 - Speichert die neue globale Einstellung show_team_logos.
 - Changelog: 1.9.0 - Speicherlogik für neue Einstellung "show_teamvergleich" ergänzt (Teamvergleich als eigenständiges Addon "teamvergleich" ausgegliedert, siehe frontend/data_liga.php 3.1.0). Analog zu show_pdf_buttons per isset($_POST[...]) geschützt - kein Reset-Risiko.
 - Changelog: 1.8.0 - Protokolliert jetzt Login, Logout, Benutzer anlegen/bearbeiten/löschen und Einstellungen-Speichern im neuen Audit-Log (siehe admin/bootstrap.php).
 - Changelog: 1.7.0 - Sicherheitsfix: User-Enumeration beim Passwort-Reset behoben (immer dieselbe Meldung, egal ob die E-Mail-Adresse zu einem Konto gehört) sowie Rate-Limiting ergänzt (dieselbe Infrastruktur wie beim Login-Rate-Limiting, mit einer IP-spezifischen Kennung). Bugfix während der Entwicklung: die erste Version nutzte einen für alle Anfragen GLEICHEN Platzhalter-Namen, wodurch loginRateLimitSecondsLeft()s "username = ? OR ip = ?"-Prüfung versehentlich zu einer SITE-WEITEN Sperre nach 5 Anfragen von IRGENDEINER IP geführt hätte, statt korrekt pro IP zu begrenzen - beim Testen selbst gefunden und auf eine IP-codierte Kennung umgestellt. Live geprüft: identische Rückmeldung für existierende/nicht-existierende E-Mail, Token wird nur bei echtem Konto angelegt, Rate-Limit sperrt nur die anfragende IP und lässt andere IPs unberührt.
@@ -532,6 +534,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/view_liga_settings.php
 
+- Changelog: 1.20.0 - Checkbox "Logo anzeigen" aus Einstellungen > Anzeigen/Darstellung der einzelnen Ligen entfernt (Beitrag: Nutzeranfrage) - jetzt global unter Einstellungen > Optionen > Anzeigen/Darstellung.
 - Changelog: 1.19.0 - Neue Checkbox "Karte anzeigen" (Schlüssel ShowKarte) im Tab Anzeigen/Darstellung, direkt unter "Ligastatistik" - nur sichtbar, wenn das team-notizen-Addon aktiv ist (gleiches Muster wie die "Spielerstatistik"-Checkbox beim player-Addon). Standardmäßig deaktiviert (kein gesetzter Options-Wert = unchecked, wie bei allen anderen Checkboxen hier). Steuert künftig die Sichtbarkeit einer neuen Kartenansicht (Team-Standorte aus den Stadion-Geo-Daten des team-notizen-Addons) - die Ansicht selbst folgt in einem späteren Schritt, hier zunächst nur der Schalter dafür.
 - Changelog: 1.18.0 - Stilkorrektur (siehe addon/addon-manager/view_addons.php 2.5.0 für den vollständigen Hintergrund): die einzige Stelle in dieser Datei mit PHP-Kurzsyntax (if/else: ... endif;) auf geschweifte-Klammer-Syntax umgestellt. Keine Verhaltensänderung.
 
@@ -582,6 +585,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/view_settings.php
 
+- Changelog: 1.9.0 - Neue Auswahl "Mannschaftslogos anzeigen?" unter Einstellungen > Optionen > Anzeigen/Darstellung (Beitrag: Nutzeranfrage) - einmal global statt pro Liga/Pokal. Solange noch nie gespeichert, zeigt die Auswahl den bisherigen Stand (Ja, sobald irgendeine Liga Logos aktiv hatte), damit beim ersten Öffnen nichts unbemerkt umspringt.
 - Changelog: 1.8.0 - Neues Feld "show_teamvergleich" (Tab Anzeigen/Darstellung, Wortlaut/Hinweistext analog zu show_pdf_buttons) - steuert erstmals, ob Besucher das Teamvergleich-Icon bei Begegnungen sehen (gab es bisher nicht als Einstellung, das Icon erschien immer). Nur sichtbar, wenn das neue teamvergleich-Addon aktiviert ist (Auslagerung als eigenständiges Addon, siehe frontend/data_liga.php 3.1.0).
 - Changelog: 1.7.0 - "PDF-Buttons anzeigen"-Feld (show_pdf_buttons, Tab Anzeigen/Darstellung) erscheint jetzt nur noch, wenn das neue pdf-export-Addon aktiviert ist (Auslagerung als eigenständiges Addon, siehe liga.php 3.13.0). Speicherung in admin/handler_user.php war bereits sicher (nutzt isset($_POST[...]) - kein Reset-Risiko wie beim früheren "stats"-Checkbox-Bug), daher dort keine Änderung nötig.
 - Changelog: 1.6.0 - Neue Karte "Verbindungssicherheit (SSL/HTTPS)" im Info-Tab, zwischen Datenbankverbindung und PHP-Erweiterungen: zeigt per lmoIsHttps() (config_loader.php 1.5.0), ob die aktuelle Verbindung über HTTPS läuft. Läuft das Script ohne SSL, erscheint zusätzlich eine deutliche Warnbox mit der Empfehlung, ein SSL-Zertifikat zu aktivieren (die meisten Hoster bieten kostenlose Let's-Encrypt-Zertifikate) und dem Hinweis auf den neuen LMO_FORCE_HTTPS-Schalter, falls dieser für einen Testbetrieb gesetzt wurde.
@@ -729,6 +733,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## frontend/data_liga.php
 
+- Changelog: 3.8.0 - Neue globale Wrapper-Funktion showTeamLogos($opts) (Durchreichung an LigaService::showTeamLogos()).
 - Changelog: 3.7.0 - Wrapper-Funktionen partieTeamNameWithLogo()/-Reversed() und renderResultsTable() um die neuen $linkHomepage/$linkBerichte-Parameter erweitert (reine Durchreichung an LigaService, siehe RenderViewsTrait.php/TeamFormattingTrait.php CHANGELOG-Einträge in dieser Version).
 - Changelog: 3.6.0 - Neue Wrapper-Funktion renderErgebnisseSpieltagNav(), delegiert an LigaService::renderErgebnisseSpieltagNav() (siehe RenderViewsTrait.php 1.29.0).
 - Changelog: 3.5.0 - renderTickerBlock() ist nach der Auslagerung als eigenständiges Addon "ticker" jetzt ein reiner Hook-Wrapper (doHook('liga.ticker_block', ...)) statt eines Aufrufs an \LMOnext\Liga\LigaService:: - Core kennt den Ticker nur noch über diesen einen Hook-Punkt, kein Fallback ohne aktives Addon (wie beim alten LMO4-Newsticker, der ebenfalls ein eigenständiges Addon war).
@@ -910,6 +915,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/de.php
 
+- Changelog: 1.53.0 - Neue Schlüssel settings_label_show_team_logos/settings_hint_show_team_logos. Der Schlüssel ls_label_show_logos wird nicht mehr verwendet (bewusst nicht entfernt, harmlos).
 - Changelog: 1.52.0 - Neue Schlüssel install_delete_btn/_confirm/_ok/_gone/_failed (Löschen-Button für install.php).
 - Changelog: 1.51.0 - Neuer Schlüssel install_leftover_warning (Hinweis auf liegen gebliebene install.php).
 - Changelog: 1.50.0 - Neuer Sprachschlüssel ls_cb_karte ("Karte anzeigen") für die neue ShowKarte-Einstellung.
@@ -1024,6 +1030,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/en.php
 
+- Changelog: 1.52.0 - New keys settings_label_show_team_logos/settings_hint_show_team_logos. Key ls_label_show_logos is no longer used (intentionally left in place, harmless).
 - Changelog: 1.51.0 - New keys install_delete_btn/_confirm/_ok/_gone/_failed (delete button for install.php).
 - Changelog: 1.50.0 - New key install_leftover_warning (notice about leftover install.php).
 - Changelog: 1.49.0 - New language key ls_cb_karte ("Show map") for the new ShowKarte setting.
@@ -1318,6 +1325,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## liga.php
 
+- Changelog: 3.25.0 - $showLogos wird jetzt über showTeamLogos($opts) ermittelt (globale Einstellung statt Liga-Option ShowLogos).
 - Changelog: 3.24.0 - KRITISCHER Bugfix (gemeldet: "Link zum Spielbericht" wird auf der Ergebnisseite nicht angezeigt, obwohl die Einstellung gesetzt ist; dieselbe Frage auch zu Mannschafts-Homepages) - die Liga-Einstellungen "Spielberichte verlinken" (urlB) und "Mannschafts-Homepages verlinken" (urlT) wurden bisher an KEINER Stelle im Frontend gelesen, obwohl beide Checkboxen im Admin seit Langem existieren und korrekt gespeichert werden - ein Blindgänger-Setting. Beide Werte werden jetzt aus getLigaOptions() gelesen und an renderResultsTable() durchgereicht (beide renderResultsTable()-Aufrufstellen betroffen: reguläre Ergebnistabelle und die gruppierte KO-Finalrunden-Ansicht).
 - Changelog: 3.23.0 - Bugfix (die untere Vorheriger/Naechster-Spieltag-Leiste stand bei den Ergebnissen unterhalb des PDF-Buttons, bei der Tabelle dagegen oberhalb): $pdfButtonHtml wird jetzt erst NACH der unteren Navigationsleiste angehaengt, statt bereits am Ende von $ergebnisInhalt zu stehen - Reihenfolge jetzt identisch zur Tabellen-Ansicht (Inhalt, Navigationsleiste, PDF-Button).
 - Changelog: 3.21.0 - FEHLERHAFTER Fix (siehe 3.22.0 fuer die Korrektur): faelschlich das Spieltag-Dropdown (renderSpieltagPicker()) statt der Vorheriger/Naechster-Spieltag-Linkleiste verdoppelt.
@@ -1434,6 +1442,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/RenderViewsTrait.php
 
+- Changelog: 1.32.0 - Alle fünf Stellen, die bisher direkt die Liga-Option ShowLogos gelesen haben, nutzen jetzt self::showTeamLogos() (globale Einstellung mit Rückfall auf die alte Liga-Option).
 - Changelog: 1.31.0 - renderPartieRow()/renderResultsTable() bekommen zwei neue Parameter $linkHomepage/$linkBerichte. Baut bei aktivem $linkBerichte und vorhandener, gültiger http(s)-bericht_url ein neues 📋-Link-Icon (setzt den Bugfix "Spielbericht-Link wird nicht angezeigt" um) - landet zusammen mit dem bestehenden Teamvergleich-Icon in derselben "col-vergleich"-Zelle, kein neuer Spaltenkopf nötig. $linkHomepage wird an partieTeamNameWithLogo()/-Reversed() durchgereicht.
 - Changelog: 1.30.0 - Bugfix (Teamnamen in der Spielplan-Sidebar der Matchday-Vorlage zu lang für mobile Ansichten): der an team_sidebar_item.tpl.php (und die sportartspezifische Dropdown-Variante) übergebene "Kurz"-Platzhalter wurde trotz seines Namens tatsächlich mit dem mittleren (oder sogar vollen) Teamnamen befüllt, nie mit dem echten Kurznamen (teams_global.kurz). Jetzt korrekt kurz zuerst, mit Rückfall auf mittel dann name, falls kurz leer ist.
 - Changelog: 1.29.0 - Neue öffentliche Methode renderErgebnisseSpieltagNav() - "vorheriger/nächster Spieltag"-Linkleiste für die Ergebnisse-Ansicht, optisch identisch zu der bereits bestehenden (privaten) renderStandingsSpieltagNav() bei der Tabelle, zeigt aber zu view=ergebnisse statt view=tabelle.
@@ -1509,6 +1518,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/TeamFormattingTrait.php
 
+- Changelog: 1.5.0 - Neue Funktion showTeamLogos($opts) (Beitrag: Nutzeranfrage): zentrale Entscheidung, ob Mannschaftslogos angezeigt werden. Liest die neue globale Admin-Einstellung "show_team_logos"; solange die noch nie gespeichert wurde, gilt rückwärtskompatibel weiterhin die alte Liga-Option ShowLogos - beim Update ändert sich also nichts, bis die globale Einstellung zum ersten Mal gesetzt wird.
 - Changelog: 1.4.0 - partieTeamNameWithLogo()/partieTeamNameWithLogoReversed() bekommen einen neuen Parameter $linkHomepage: verlinkt den Teamnamen zur in teams_global.url hinterlegten Homepage, wenn aktiv UND eine gültige http(s)-URL hinterlegt ist (neue private Hilfsfunktion safeHomepageUrl() - verhindert ein gespeichertes "javascript:..."-Pseudo-Protokoll als klickbaren Link). Setzt den Bugfix aus SpieltagRepositoryTrait.php 1.8.0 um - die Liga-Einstellung "Mannschafts-Homepages verlinken" (urlT) wurde bis dahin an keiner Stelle im Frontend überhaupt ausgewertet.
 - Changelog: 1.3.0 - KRITISCHE Verfeinerung (bei mehreren Grüne-Tisch-Entscheidungen am selben Spieltag ließ sich ein einzelnes "(*)" keiner bestimmten Fußnotenzeile zuordnen): neue Methode gtFootnoteMarker() wandelt eine Nummer in eine hochgestellte, geklammerte Markierung um (z.B. 1 -> "⁽¹⁾") - mit reinen Unicode-Zeichen statt eines <sup>-HTML-Tags, da statusSuffix() uneinheitlich zwischen zwei Aufrufpfaden verwendet wird (formatScore() lässt den Suffix unescaped, FootballProfile::formatResult() läuft anschließend noch durch ein äußeres h()) - ein HTML-Tag wäre im zweiten Pfad escaped und als Text sichtbar geworden. statusSuffix() nutzt die zugewiesene Nummer aus $partie['_gt_footnote_nr'] (siehe liga.php, assignGtFootnoteNumbers()), fällt ohne diese Nummer (Kontexte ohne begleitende Fußnotenliste wie PDF-Export/Kreuztabelle/Ligastatistik/Team-Spielplan) weiterhin auf das einfache "(*)" zurück.
 - Changelog: 1.2.0 - statusSuffix() zeigt jetzt zusätzlich "Wertung" bei einer Grüne-Tisch-Entscheidung an (siehe StandingsTrait::gtCreditedScore()) - bewusst VOR dem h_tore/g_tore-null-Check geprüft, da eine solche Entscheidung auch ganz ohne real eingetragenes Ergebnis greift (z.B. Nichtantritt).

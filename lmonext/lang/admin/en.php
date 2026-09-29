@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: lang/admin/en.php
- * Fileversion: 1.51.0
+ * Fileversion: 1.52.0
  *
  * PHP version 8.2
  *
@@ -800,6 +800,8 @@ return [
     'settings_hint_show_language_switcher'  => 'If no, the language selector is hidden from visitors on every page of the frontend.',
     'settings_label_show_back_link'        => 'Show league overview?',
     'settings_hint_show_back_link'         => 'If no, both the "← Back to overview" link on the league detail page AND the entire league selection on the homepage (active leagues + archive) are hidden from visitors. Leagues are then only reachable directly via liga.php?id=LEAGUE_ID – intended for operators who only want to embed a single, fixed league via iframe/include on an external website (equivalent to "Ligaauswahl" in the old LMO).',
+    'settings_label_show_team_logos'       => 'Show team logos?',
+    'settings_hint_show_team_logos'        => 'Applies to all leagues and cups in the visitor area (results, table, schedule etc.). Replaces the former "Show logo" setting in the individual leagues.',
 
     // ── Maintenance (database backup/restore) ─────────────────────────────────
     'wartung_tab_wartung'             => 'Maintenance mode',

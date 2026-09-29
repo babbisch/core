@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/RenderViewsTrait.php
- * Fileversion: 1.31.0
+ * Fileversion: 1.32.0
  *
  * PHP version 8.2
  *
@@ -441,7 +441,7 @@ trait RenderViewsTrait
         $opts        = self::getLigaOptions($ligaId);
         $showKickoff = self::ligaFlagEnabled($opts, 'DatM', false);
         $dateFormat  = $opts['DatF'] ?? 'd.m.Y H:i';
-        $showLogos   = ($opts['ShowLogos'] ?? '0') === '1';
+        $showLogos   = self::showTeamLogos($opts);
     
         // Erst alle Runden mit ihren Paarungsgruppen + repräsentativen Team-IDs sammeln
         $rounds = [];
@@ -607,7 +607,7 @@ trait RenderViewsTrait
 
         $favTeamId = self::resolveTeamNumberToId($ligaId, (int)($opts['favTeam'] ?? 0));
         $totalTeams = count($rows);
-        $showLogos  = ($opts['ShowLogos'] ?? '0') === '1';
+        $showLogos  = self::showTeamLogos($opts);
         // Für die Mouseover-Tooltips der Form-Punkte (siehe
         // computeLast5Form()/computeNextMatchDot() in StandingsTrait.php).
         $teamsById  = array_column($teams, null, 'id');
@@ -885,7 +885,7 @@ trait RenderViewsTrait
     public static function renderTeamScheduleView(int $ligaId, array $allSpieltage, ?int $selectedTeamId) : string
     {
         $teams     = self::getLigaTeamsList($ligaId);
-        $showLogos = (self::getLigaOptions($ligaId)['ShowLogos'] ?? '0') === '1';
+        $showLogos = self::showTeamLogos(self::getLigaOptions($ligaId));
         // Team-Auswahl sportartabhängig (Dropdown nur bei
         // Volleyball, alle anderen Sportarten behalten die bisherige
         // Sidebar-Liste bei) - Vorbild für das Dropdown: Torsten Hofmanns
@@ -972,7 +972,7 @@ trait RenderViewsTrait
         $partien   = self::getAllLigaPartien($allSpieltage, $ligaId);
         $standing  = self::computeStandings($teams, $partien, $opts, $ligaId);
         $favTeamId = self::resolveTeamNumberToId($ligaId, (int)($opts['favTeam'] ?? 0));
-        $showLogos = ($opts['ShowLogos'] ?? '0') === '1';
+        $showLogos = self::showTeamLogos($opts);
     
         $mittelById = [];
         foreach ($teams as $t) {
@@ -1304,7 +1304,7 @@ trait RenderViewsTrait
         $teams    = self::getLigaTeamsList($ligaId);
         $partien  = self::getAllLigaPartien($allSpieltage, $ligaId);
         $standing = self::computeStandings($teams, $partien, $opts, $ligaId);
-        $showLogos = ($opts['ShowLogos'] ?? '0') === '1';
+        $showLogos = self::showTeamLogos($opts);
     
         $pickerOptions = '<option value="0">– ' . h(tf('liga_stat_pick_team')) . ' –</option>';
         foreach ($teams as $t) {

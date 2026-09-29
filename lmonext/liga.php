@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: liga.php
- * Fileversion: 3.24.0
+ * Fileversion: 3.25.0
  *
  * PHP version 8.2
  *
@@ -93,7 +93,7 @@ if ($liga === null) {
 $isKO         = getLigaType($ligaId) === 1;
 $opts         = getLigaOptions($ligaId);
 $flags        = getLigaViewFlags($opts);
-$showLogos    = ($opts['ShowLogos'] ?? '0') === '1';
+$showLogos    = showTeamLogos($opts);
 $linkTeamHomepages = ($opts['urlT'] ?? '0') === '1';
 $linkSpielberichte  = ($opts['urlB'] ?? '0') === '1';
 $showSpielfrei = ($opts['ShowSpielfrei'] ?? '1') === '1';

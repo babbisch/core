@@ -263,6 +263,8 @@ if ($action === 'save_admin_settings' && $_SERVER['REQUEST_METHOD'] === 'POST') 
             $s->execute(['show_language_switcher', $_POST['show_language_switcher'] === '1' ? '1' : '0']);
         }
 
+        // Mannschaftslogos jetzt EINMAL global statt pro
+        // Liga/Pokal einzustellen (vorher Liga-Einstellung "ShowLogos").
         if (isset($_POST['show_team_logos'])) {
             $s->execute(['show_team_logos', $_POST['show_team_logos'] === '1' ? '1' : '0']);
         }

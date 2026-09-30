@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: view_settings.php
- * Fileversion: 1.8.0
+ * Fileversion: 1.9.0
  *
  * PHP version 8.2
  *
@@ -44,6 +44,17 @@ $showPdfButtons      = getAdminSetting('show_pdf_buttons', '1') === '1';
 $showTeamvergleich   = getAdminSetting('show_teamvergleich', '1') === '1';
 $showLanguageSwitcher = getAdminSetting('show_language_switcher', '1') === '1';
 $showBackLink        = getAdminSetting('show_back_link', '1') === '1';
+// Mannschaftslogos (global): solange noch nie gespeichert,
+// spiegelt die Auswahl den bisherigen Stand der alten Liga-Einstellung wider (Ja,
+// sobald irgendeine Liga Logos aktiv hatte) - kein stilles Umschalten beim ersten Öffnen.
+$showTeamLogosSaved = getAdminSetting('show_team_logos', '');
+if ($showTeamLogosSaved === '') {
+    try {
+        $showTeamLogos = (int)getDB()->query("SELECT COUNT(*) FROM " . tbl('liga_options') . " WHERE option_key='ShowLogos' AND option_value='1'")->fetchColumn() > 0;
+    } catch (Throwable) { $showTeamLogos = false; }
+} else {
+    $showTeamLogos = $showTeamLogosSaved === '1';
+}
 
 // ── View: Einstellungen (zweistufige Tabs: Optionen > Optionen/Anzeigen,
 // Info) ───────────────────────────────────────────────────────────────────
@@ -198,6 +209,17 @@ foreach ($mainTabs as $key => $label) {
             </select>
             <div style="font-size:.78rem;color:var(--muted);margin-top:4px">
               <?= h(t('settings_hint_show_back_link')) ?>
+            </div>
+          </div>
+          <div class="form-group">
+            <label><?= h(t('settings_label_show_team_logos')) ?></label>
+            <select name="show_team_logos" style="width:100%;background:var(--bg);border:1px solid var(--border);
+                   color:var(--text);border-radius:var(--radius);padding:8px 10px;font-size:.87rem;margin-top:4px">
+              <option value="1"<?= $showTeamLogos ? ' selected' : '' ?>><?= h(t('common_yes')) ?></option>
+              <option value="0"<?= !$showTeamLogos ? ' selected' : '' ?>><?= h(t('common_no')) ?></option>
+            </select>
+            <div style="font-size:.78rem;color:var(--muted);margin-top:4px">
+              <?= h(t('settings_hint_show_team_logos')) ?>
             </div>
           </div>
           <button type="submit" class="btn btn-primary"><?= h(t('common_save')) ?></button>

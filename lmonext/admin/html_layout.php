@@ -23,7 +23,7 @@
     // (announcement), die das Update beschreibt, statt auf die
     // reine Download-Datei - deutlich hilfreicher für den Admin.
     // Fällt zurück auf download, falls announcement leer ist
-    //(ältere check_version.json ohne dieses Feld).
+    // (ältere check_version.json ohne dieses Feld).
     $updateLink = ($coreUpdate['announcement'] ?? '') !== '' ? $coreUpdate['announcement'] : $coreUpdate['download'];
   ?>
   <a href="<?= h($updateLink) ?>" target="_blank" rel="noopener"

@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/TeamFormattingTrait.php
- * Fileversion: 1.4.0
+ * Fileversion: 1.5.0
  *
  * PHP version 8.2
  *
@@ -129,6 +129,25 @@ trait TeamFormattingTrait
         $img = self::renderTeamLogoImg($teamId, $showLogos);
         return $img !== '' ? '<span class="st-team-logo-wrap">' . $img . '</span>' : '';
     }
+    /**
+     * Sollen Mannschaftslogos angezeigt werden?
+     *
+     * Bisher pro Liga/Pokal einzeln einzustellen (Liga-Option "ShowLogos"),
+     * jetzt EINMAL global unter Einstellungen > Optionen > Anzeigen/Darstellung
+     * (Admin-Einstellung "show_team_logos"). Rückwärtskompatibel: solange die
+     * globale Einstellung noch nie gespeichert wurde, gilt weiterhin der alte
+     * Wert der jeweiligen Liga ($opts['ShowLogos']) - dadurch ändert sich beim
+     * Update nichts, bis der Admin die globale Einstellung zum ersten Mal setzt.
+     */
+    public static function showTeamLogos(array $opts) : bool
+    {
+        $global = function_exists('getAdminSetting') ? \getAdminSetting('show_team_logos', '') : '';
+        if ($global !== '') {
+            return $global === '1';
+        }
+        return ($opts['ShowLogos'] ?? '0') === '1';
+    }
+
     /**
      * Nur http(s)-URLs werden als Link ausgegeben - verhindert, dass ein
      * gespeichertes "javascript:..."-Pseudo-Protokoll im Homepage-Feld

@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: handler_user.php
- * Fileversion: 1.9.0
+ * Fileversion: 1.10.0
  *
  * PHP version 8.2
  *
@@ -261,6 +261,10 @@ if ($action === 'save_admin_settings' && $_SERVER['REQUEST_METHOD'] === 'POST') 
 
         if (isset($_POST['show_language_switcher'])) {
             $s->execute(['show_language_switcher', $_POST['show_language_switcher'] === '1' ? '1' : '0']);
+        }
+
+        if (isset($_POST['show_team_logos'])) {
+            $s->execute(['show_team_logos', $_POST['show_team_logos'] === '1' ? '1' : '0']);
         }
 
         if (isset($_POST['show_back_link'])) {

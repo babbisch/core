@@ -65,6 +65,11 @@ if (isLoggedIn()) {
             $lid = (int)$_GET['id'];
             $s = $db->prepare('SELECT * FROM '.tbl('liga').' WHERE id=?');
             $s->execute([$lid]); $ligaDetail['liga'] = $s->fetch();
+            // Bugfix (Fehlerlog: 3x "Trying to access array offset on false" in
+            // view_liga_spieltage.php): existiert die Liga nicht (gelöscht oder
+            // veralteter Link/Lesezeichen), lieferte fetch() false - $ligaDetail
+            // war durch die übrigen Schlüssel aber trotzdem "wahr", die Ansicht
+            // wurde geladen und griff auf false['id'] zu. Jetzt sauber abfangen.
             if ($ligaDetail['liga'] === false) {
                 flash(t('ls_liga_not_found'), 'error');
                 redirect('?action=dashboard');

@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Addon/AddonManager.php
- * Fileversion: 1.10.1
+ * Fileversion: 1.10.2
  *
  * PHP version 8.2
  *
@@ -1918,15 +1918,28 @@ Require all denied
      * (gleicher open_basedir-Kontext) und gegen alle Kandidaten gelintet.
      * Nur ein Binary, das die Kontrolle besteht, darf urteilen.
      *
+     * BUGFIX (Effizienzproblem bei der Prüfung dieses Patches): der
+     * bisherige Cache (static $usableBinary, Kurzschluss nur bei
+     * $usableBinary !== null) merkte sich NUR den Erfolgsfall. Fand kein
+     * Kandidat ein taugliches Binary (Host ganz ohne CLI-php, gesperrtes
+     * proc_open, Probe-Datei nicht schreibbar), blieb $usableBinary null -
+     * jeder weitere Aufruf (scanExtractedFiles() ruft diese Funktion für
+     * JEDE .php-Datei der ZIP auf) durchlief die komplette Kandidatenliste
+     * erneut, statt sich "kein Kandidat funktioniert" für den Rest des
+     * Requests zu merken. Bei vielen Dateien in einer ZIP auf einem
+     * ungünstigen Host unnötig langsam. Jetzt mit eigenem $attempted-Flag,
+     * das den "kein Kandidat taugt"-Fall genauso cacht wie einen Treffer.
+     *
      * @return string|null Binary-Pfad oder null (kein tauglicher Kandidat)
      */
     private function pickLintBinary(string $lintContextDir, float $timeoutSeconds): ?string
     {
+        static $attempted = false;
         static $usableBinary = null;
-        if ($usableBinary !== null) {
+        if ($attempted) {
             return $usableBinary;
         }
-        $usableBinary = null;
+        $attempted = true;
 
         $probeFile = $lintContextDir . '/.lmo_lint_probe_' . getmypid() . '.php';
         // Reine PHP-8.2-Syntax: readonly class + Konstruktor-Promotion.
@@ -2053,6 +2066,7 @@ Require all denied
         proc_close($process);
         return $exitCode === 0;
     }
+
     public function installFromZip(string $zipPath): array
     {
         if (!class_exists('ZipArchive')) {

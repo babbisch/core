@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: liga.php
- * Fileversion: 3.25.0
+ * Fileversion: 3.26.0
  *
  * PHP version 8.2
  *
@@ -96,7 +96,7 @@ $flags        = getLigaViewFlags($opts);
 $showLogos    = showTeamLogos($opts);
 $linkTeamHomepages = ($opts['urlT'] ?? '0') === '1';
 $linkSpielberichte  = ($opts['urlB'] ?? '0') === '1';
-$showSpielfrei = ($opts['ShowSpielfrei'] ?? '1') === '1';
+$showSpielfrei = ($opts['ShowSpielfrei'] ?? '0') === '1';
 // Globale Einstellung (Admin → Einstellungen → Besucherbereich), gilt für
 // alle Liga-Typen und alle PDF-Exporte gleichermaßen. Blockiert bei
 // Deaktivierung nicht nur den Button, sondern auch den direkten Aufruf über

@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/StandingsTrait.php
- * Fileversion: 1.13.5
+ * Fileversion: 1.14.0
  *
  * PHP version 8.2
  *
@@ -968,8 +968,14 @@ trait StandingsTrait
      * die Fußnote. Behält den detaillierten Tooltip (genaue
      * Punkte-/Tore-Deltas, falls vorhanden) zusätzlich zur sichtbaren
      * Fußnoten-Nummer bei.
+     *
+     * $pktLabel (Bugfix, Fortsetzung der Korrektur in renderStandingsTable():
+     * dieselbe "Alternative für Pkt."-Liga-Einstellung (namePkt) fehlte auch
+     * hier, der Tooltip zeigte im "+N Pkt."-Teil immer die feste Übersetzung)
+     * - leerer String (Default) bedeutet "normale Übersetzung verwenden",
+     * identischer Rückfall wie bei den Tabellen-Spaltenköpfen.
      */
-    public static function renderStrafHinweis(array $row, int $footnoteNr = 0) : string
+    public static function renderStrafHinweis(array $row, int $footnoteNr = 0, string $pktLabel = '') : string
     {
         $sp = (int)($row['strafpunkte'] ?? 0);
         $st = (int)($row['straftore'] ?? 0);
@@ -979,9 +985,10 @@ trait StandingsTrait
         if ($sp === 0 && $st === 0 && $tk === 0 && $mk === 0 && $grund === '') {
             return '';
         }
+        $pktText = $pktLabel !== '' ? $pktLabel : tf('liga_standings_col_pkt');
         $teile = [];
         if ($sp !== 0) {
-            $teile[] = ($sp > 0 ? '+' : '') . $sp . ' ' . tf('liga_standings_col_pkt');
+            $teile[] = ($sp > 0 ? '+' : '') . $sp . ' ' . $pktText;
         }
         if ($tk !== 0) {
             $teile[] = ($tk > 0 ? '+' : '') . $tk . ' ' . tf('liga_standings_straf_erzielt');

@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: lang/admin/en.php
- * Fileversion: 1.52.0
+ * Fileversion: 1.53.0
  *
  * PHP version 8.2
  *
@@ -854,6 +854,7 @@ return [
     'wartung_error_invalid_file'     => 'Invalid file name.',
     'wartung_error_file_missing'     => 'Backup file not found.',
     'wartung_error_decompress'       => 'Error decompressing the backup.',
+    'wartung_error_not_native_backup' => 'This file does not look like a backup created by LMOnext itself (it is missing every "DROP TABLE IF EXISTS" statement before the tables). It is likely a third-party SQL export (e.g. from phpMyAdmin) that happened to be named in a matching way. Importing through this feature is only intended for LMOnext\'s own backups - for third-party data, please use a separate, empty database and import it directly via phpMyAdmin.',
     'wartung_error_generic'          => 'An error occurred.',
 
     // ── Import: team name matching (approximate matches before the actual import) ─

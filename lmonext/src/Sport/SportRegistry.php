@@ -6,7 +6,7 @@ namespace LMOnext\Sport;
 /**
  * Projekt: LMOnext
  * Filename: src/Sport/SportRegistry.php
- * Fileversion: 1.0.0
+ * Fileversion: 1.1.0
  *
  * PHP version 8.2
  *
@@ -40,6 +40,7 @@ final class SportRegistry
             'basketball' => new BasketballProfile(),
             'handball'   => new HandballProfile(),
             'badminton'  => new BadmintonProfile(),
+            'kegeln'     => new KegelnProfile(),
         ];
     }
 

@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/LigaRepositoryTrait.php
- * Fileversion: 1.3.0
+ * Fileversion: 1.4.0
  *
  * PHP version 8.2
  *
@@ -37,9 +37,10 @@ trait LigaRepositoryTrait
     }
     /**
      * Sportart der Liga ('football', 'volleyball', 'icehockey', 'basketball',
-     * 'handball', 'badminton' - siehe src/Sport/SportRegistry.php, Beitrag:
-     * Torsten Hofmann). Fallback auf 'football' für volle Rückwärtskompatibilität
-     * (bestehende Ligen haben sport_type='football' als DB-Standardwert).
+     * 'handball', 'badminton', 'kegeln' - siehe src/Sport/SportRegistry.php,
+     * Beitrag: Torsten Hofmann). Fallback auf 'football' für volle Rückwärts-
+     * kompatibilität (bestehende Ligen haben sport_type='football' als
+     * DB-Standardwert).
      */
     public static function getLigaSportType(int $ligaId) : string
     {

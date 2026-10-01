@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/RenderViewsTrait.php
- * Fileversion: 1.32.0
+ * Fileversion: 1.34.0
  *
  * PHP version 8.2
  *
@@ -616,6 +616,9 @@ trait RenderViewsTrait
         $showMinuspunkte = ($opts['MinusPoints'] ?? '0') === '1';
         $footnoteNrs = self::assignStrafFootnotes($rows);
 
+        $colToreLabel = (string)($opts['nameTor'] ?? '');
+        $colPktLabel  = (string)($opts['namePkt'] ?? '');
+
         $formByTeam  = self::computeLast5Form($partienForMode, $csMode, $teamsById, $dateFormat, $showLogos);
         $nextDotByTeam = self::computeNextMatchDot($allPartienUnfiltered, $teamsById, $dateFormat, $showLogos, $csMode);
         $trendByTeam = self::computePositionTrend($teams, $partienForMode, $opts, $ligaId, $csMode);
@@ -638,7 +641,7 @@ trait RenderViewsTrait
                 'Logo'     => self::renderTeamLogoImgWrapped($tid, $showLogos),
                 'Team'     => h($r['name']),
                 'TeamClass'=> ($favTeamId !== null && $r['id'] === $favTeamId) ? ' fav-team' : '',
-                'StrafHinweis' => self::renderStrafHinweis($r, $footnoteNrs[$tid] ?? 0),
+                'StrafHinweis' => self::renderStrafHinweis($r, $footnoteNrs[$tid] ?? 0, $colPktLabel),
                 'RowStyle' => $markerColor !== '' ? ' style="border-left-color:' . h($markerColor) . '"' : '',
                 'Sp'       => (string)$r['sp'],
                 'S'        => (string)$r['s'],
@@ -663,9 +666,9 @@ trait RenderViewsTrait
             'ColS'        => h(tf('liga_standings_col_s')),
             'ColU'        => h(tf('liga_standings_col_u')),
             'ColN'        => h(tf('liga_standings_col_n')),
-            'ColTore'     => h(tf('liga_standings_col_tore')),
+            'ColTore'     => h($colToreLabel !== '' ? $colToreLabel : tf('liga_standings_col_tore')),
             'ColDiff'     => h(tf('liga_standings_col_diff')),
-            'ColPkt'      => h(tf('liga_standings_col_pkt')),
+            'ColPkt'      => h($colPktLabel !== '' ? $colPktLabel : tf('liga_standings_col_pkt')),
             'ColForm'     => h(tf('liga_standings_col_form')),
             'ColTrend'    => h(tf('liga_standings_col_trend')),
             'Rows'        => $rowsHtml,
@@ -738,7 +741,7 @@ trait RenderViewsTrait
 
             $rowsHtml .= '<tr' . $rowStyle . '>'
                        . '<td class="st-platz">' . ($i + 1) . '</td>'
-                       . '<td class="st-team' . $teamClass . '">' . h($r['name']) . self::renderStrafHinweis($r, $footnoteNrs[$tid] ?? 0) . '</td>';
+                       . '<td class="st-team' . $teamClass . '">' . h($r['name']) . self::renderStrafHinweis($r, $footnoteNrs[$tid] ?? 0, (string)($opts['namePkt'] ?? '')) . '</td>';
             foreach ($columns as $col) {
                 $rowsHtml .= '<td class="' . h($col['class']) . '">' . h(self::resolveStandingsCell($r, $col['key'])) . '</td>';
             }

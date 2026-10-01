@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: view_liga_settings.php
- * Fileversion: 1.20.0
+ * Fileversion: 1.22.0
  *
  * PHP version 8.2
  *
@@ -99,13 +99,26 @@ if ($tab === 'grundwerte') { ?>
 <?php if ($showSportType) { ?>
             <tr>
               <td style="text-align:right;padding:7px 12px;font-size:.85rem;color:var(--muted)"><?= h(t('ls_label_sportart')) ?></td>
-              <td <?= $tdL ?>>
-                <select name="sport_type" style="<?= $selSt ?>" onchange="document.getElementById('sportart-draws-hinweis').style.display = (this.value !== 'football' && this.value !== 'handball') ? 'block' : 'none';">
+            <td <?= $tdL ?>>
+<?php
+                // Vorher eine feste Liste ['football','handball'], die bei
+                // jeder neuen Sportart erneut gepflegt werden musste. Jetzt
+                // dynamisch aus SportProfile::supportsDraws() aller
+                // registrierten Sportarten gebaut - bleibt automatisch
+                // korrekt, auch für künftige Sportarten.
+                $noDrawSports = [];
+                foreach (\LMOnext\Sport\SportRegistry::all() as $spEntry) {
+                    if (!$spEntry->supportsDraws()) { $noDrawSports[] = $spEntry->getKey(); }
+                }
+                $currentSportType = $liga['sport_type'] ?? 'football';
+                $currentSupportsDraws = !in_array($currentSportType, $noDrawSports, true);
+?>
+                <select name="sport_type" style="<?= $selSt ?>" onchange="document.getElementById('sportart-draws-hinweis').style.display = <?= h(json_encode($noDrawSports)) ?>.includes(this.value) ? 'block' : 'none';">
                   <?php foreach (\LMOnext\Sport\SportRegistry::all() as $sp) { ?>
-                  <option value="<?= h($sp->getKey()) ?>"<?= ($liga['sport_type'] ?? 'football') === $sp->getKey() ? ' selected' : '' ?>><?= h($sp->getLabel()) ?></option>
+                  <option value="<?= h($sp->getKey()) ?>"<?= $currentSportType === $sp->getKey() ? ' selected' : '' ?>><?= h($sp->getLabel()) ?></option>
                   <?php } ?>
                 </select>
-                <div id="sportart-draws-hinweis" style="display:<?= !in_array($liga['sport_type'] ?? 'football', ['football', 'handball'], true) ? 'block' : 'none' ?>;font-size:.75rem;color:var(--muted);margin-top:4px"><?= h(t('ls_hinweis_keine_unentschieden')) ?></div>
+                <div id="sportart-draws-hinweis" style="display:<?= !$currentSupportsDraws ? 'block' : 'none' ?>;font-size:.75rem;color:var(--muted);margin-top:4px"><?= h(t('ls_hinweis_keine_unentschieden')) ?></div>
               </td>
             </tr>
 <?php } else { ?>
@@ -440,7 +453,7 @@ if ($tab === 'grundwerte') { ?>
             </tr>
             <tr>
               <td style="text-align:right;padding:7px 12px;font-size:.85rem;color:var(--muted)"><?= h(t('ls_label_show_spielfrei')) ?></td>
-              <td style="padding:5px 10px"><input type="checkbox" name="ShowSpielfrei" value="1"<?= ($opts['ShowSpielfrei'] ?? '1') === '1' ?' checked':'' ?>></td>
+              <td style="padding:5px 10px"><input type="checkbox" name="ShowSpielfrei" value="1"<?= ($opts['ShowSpielfrei'] ?? '0') === '1' ?' checked':'' ?>></td>
             </tr>
             <tr>
               <td style="text-align:right;padding:7px 12px;font-size:.85rem;color:var(--muted)"><?= h(t('ls_label_kalender')) ?></td>

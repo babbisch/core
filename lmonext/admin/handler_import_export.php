@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: handler_import_export.php
- * Fileversion: 1.13.0
+ * Fileversion: 1.14.0
  *
  * PHP version 8.2
  *
@@ -186,7 +186,10 @@ function createLigaInDB(string $name, int $type, array $teamData, array $spielta
             $db->exec('ALTER TABLE '.tbl('liga')." ADD COLUMN `sport_type` VARCHAR(20) NOT NULL DEFAULT 'football' AFTER `archiv_folder_id`");
         }
     }
-    if (!in_array($sportType, ['football', 'volleyball', 'icehockey', 'basketball', 'handball', 'badminton'], true)) {
+    // Vorher eine feste Liste, die bei jeder neuen Sportart hätte erneut
+    // gepflegt werden müssen. Jetzt dynamisch aus allen in SportRegistry
+    // registrierten Sportarten gebaut.
+    if (!in_array($sportType, array_keys(\LMOnext\Sport\SportRegistry::all()), true)) {
         $sportType = null;
     }
 
@@ -650,7 +653,7 @@ function importL98IntoDB(array $data, array $teamNameOverrides = [], ?string $sp
         // fehlt es (z.B. bei einem direkten, programmatischen Aufruf ohne
         // Formular), wird auf die automatische Erkennung zurückgefallen.
         $sportType = $sportTypeOverride ?? ($data['detectedSportType'] ?? 'football');
-        if (!in_array($sportType, ['football', 'volleyball', 'icehockey', 'basketball', 'handball', 'badminton'], true)) {
+        if (!in_array($sportType, array_keys(\LMOnext\Sport\SportRegistry::all()), true)) {
             $sportType = 'football';
         }
         $db->prepare('UPDATE '.tbl('liga').' SET sport_type=? WHERE id=?')->execute([$sportType, $ligaId]);
@@ -1096,7 +1099,7 @@ if ($action === 'import_confirm' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $sportTypeByFile = [];
     foreach (($_POST['sportType'] ?? []) as $fileIdx => $val) {
         $val = (string)$val;
-        if (in_array($val, ['football', 'volleyball', 'icehockey', 'basketball', 'handball', 'badminton'], true)) {
+        if (in_array($val, array_keys(\LMOnext\Sport\SportRegistry::all()), true)) {
             $sportTypeByFile[(int)$fileIdx] = $val;
         }
     }

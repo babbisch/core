@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: handler_wizard.php
- * Fileversion: 1.4.0
+ * Fileversion: 1.5.0
  *
  * PHP version 8.2
  *
@@ -63,7 +63,9 @@ if ($action === 'create_liga') {
         // hier bereits in Schritt 1 statt erst nachträglich in den
         // Ligaeinstellungen wählbar).
         $sportType = trim($_POST['sport_type'] ?? 'football');
-        if (!in_array($sportType, ['football', 'volleyball', 'icehockey', 'basketball', 'handball', 'badminton'], true)) {
+        // Dynamisch aus SportRegistry statt einer festen Liste - siehe
+        // Kommentar bei derselben Prüfung in handler_import_export.php.
+        if (!in_array($sportType, array_keys(\LMOnext\Sport\SportRegistry::all()), true)) {
             $sportType = 'football';
         }
         // Liga und KO haben getrennte Felder (team_count_liga/team_count_ko),

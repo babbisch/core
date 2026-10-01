@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: handler_backup.php
- * Fileversion: 1.5.0
+ * Fileversion: 1.6.0
  *
  * PHP version 8.2
  *
@@ -507,6 +507,11 @@ function backupRestore(string $filename) : array
     };
     if (!is_string($sql)) {
         return ['ok' => false, 'error' => t('wartung_error_decompress')];
+    }
+
+    // ── Fremde SQL-Dateien erkennen ──────────────────────────────────
+    if (preg_match('/^\s*CREATE\s+TABLE/im', $sql) && !preg_match('/^\s*DROP\s+TABLE\s+IF\s+EXISTS/im', $sql)) {
+        return ['ok' => false, 'error' => t('wartung_error_not_native_backup')];
     }
 
     // ── Portabilität zwischen Installationen mit unterschiedlichem

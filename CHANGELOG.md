@@ -1,5 +1,9 @@
 # Changelog LMOnext
 
+## src/Sport/KegelnProfile.php
+
+- Changelog: 1.0.0 - Neue Datei (Beitrag: Nutzeranfrage) - Sport-Profil für Kegeln, strukturell identisch zu FootballProfile (Unentschieden möglich, keine Halbzeit/Perioden), mit der sportart-eigenen Terminologie ("Holz" statt "Tore"). Ergänzt die Liga-eigene Einstellung "Alternative für Tore"/"Alternative für Pkt." (nameTor/namePkt) - beide bleiben unverändert nutzbar, falls ein anderer Begriff als "Holz" gewünscht ist.
+
 ## README.md
 
 - Changelog: 1.1.2 - Torsten Hofmann im Mitwirkende-Abschnitt (Deutsch und Englisch) auf seinen GitHub-Account verlinkt (@webfalter).
@@ -307,6 +311,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/handler_backup.php
 
+- Changelog: 1.6.0 - backupRestore() erkennt jetzt VOR jeder Ausführung, wenn eine Datei kein echtes LMOnext-Backup ist: enthält sie CREATE-TABLE-Anweisungen, aber keine einzige DROP TABLE IF EXISTS-Anweisung (die LMOnexts eigene Backups IMMER vor jeder Tabelle setzen, siehe backupBuildDump()), bricht der Import mit einer klaren Erklärung ab, statt erst mittendrin mit einer rohen "Table already exists"-Meldung zu scheitern und dabei ggf. schon teilweise neue, fremde Tabellen anzulegen. Bewusst nicht an der "-- Prefix:"-Zeile festgemacht, da ältere echte LMOnext-Backups diese ebenfalls nicht haben.
 - Changelog: 1.5.0 - Neue Aktion save_maintenance_mode (Beitrag: Torsten Hofmann, hier zusätzlich mit Audit-Log-Eintrag über logAdminAction() abgesichert - Torstens Originalversion hatte keine eigene Protokollierung dieser Aktion). Speichert den Wartungsmodus-Schalter als admin_settings-Eintrag, ausgewertet in frontend/bootstrap.php 1.12.0.
 - Changelog: 1.4.0 - Protokolliert Backup erstellen/wiederherstellen/löschen im neuen Audit-Log - besonders wichtig bei "wiederherstellen", da dabei bestehende Daten überschrieben werden.
 - Changelog: 1.3.0 - Spielerfotos (assets/img/player/, siehe addon/player/spielerstat_lib.php) werden jetzt im selben Logo-ZIP mitgesichert (eigenes Unterverzeichnis "player/" neben "teams/"), inkl. Wiederherstellung. Kein zusätzliches ZIP nötig, kein Verhaltensunterschied für ältere Backups ohne Fotos
@@ -324,6 +329,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/handler_import_export.php
 
+- Changelog: 1.14.0 - Die drei Stellen, die eine Sportart gegen eine feste Liste ['football', 'volleyball', 'icehockey', 'basketball', 'handball', 'badminton'] validiert haben, nutzen jetzt dynamisch array_keys(SportRegistry::all()) - "kegeln" wird dadurch automatisch als gültige Sportart akzeptiert, ohne diese Stellen einzeln anzupassen.
 - Changelog: 1.13.0 - Feature (verifiziert anhand einer echten .l98-Testdatei mit zwei bearbeiteten Begegnungen): .l98-Import erkennt jetzt Grüne-Tisch-Entscheidungen aus dem alten LMO4-Format und überträgt sie nach liga_partien.gt_entscheidung. Das Legacy-Format markiert die SIEGENDE Mannschaft mit einem negativen Tor-Wert ungleich -1 (z.B. GB1=-2, während -1 bereits als "kein Ergebnis" reserviert ist) - da dabei nur EINER der beiden Torwerte real gespeichert ist (die siegende Seite hat gar keinen echten Torwert, nur den Marker), lässt sich kein vollständiges reales Ergebnis rekonstruieren; beide Seiten werden daher als "kein reales Ergebnis" importiert, StandingsTrait::gtCreditedScore() wertet das korrekt mit der Nichtantritt-Standardwertung (3:0). Sowohl im regulären Liga-Zweig als auch im KO-Zweig behoben - im KO-Fall wird die Team-A/B-relative Markierung erst beim tatsächlichen Insert in heim-/gast-relative 1/2 aufgelöst, da A/B je nach Spielnummer/Modus zwischen Heim und Gast wechseln kann (koHeimatTeamA()). ensureSpielstatusColumns() vor dem eigentlichen Import ergänzt (deckt auch die bereits vorhandenen status/nicht_gewertet-Spalten ab, war zuvor nicht sichergestellt). Mit der tatsächlich hochgeladenen Testdatei durchgerechnet: beide markierten Begegnungen (Dortmund–Darmstadt: Gastteam siegt, Heidenheim–Köln: Heimteam siegt) korrekt erkannt, alle sieben unveränderten Begegnungen desselben Spieltags unverändert normal geparst.
 - Changelog: 1.12.0 - Protokolliert jeden erfolgreichen .l98-Import zentral in runL98Import() im neuen Audit-Log, inkl. Dateiname und importiertem Liganamen.
 - Changelog: 1.11.0 - createLigaInDB() bekommt einen neuen, optionalen $sportType-Parameter (mit derselben defensiven on-demand-Schema-Prüfung wie an anderer Stelle etabliert, bewusst vor beginTransaction()). Bestehende Aufrufer ohne den Parameter bleiben unverändert (Fußball als DB-Standardwert).
@@ -382,6 +388,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/handler_settings.php
 
+- Changelog: 1.17.0 - Sportart-Validierung beim Speichern der Liga-Einstellungen nutzt jetzt dynamisch array_keys(SportRegistry::all()) statt einer festen Liste - siehe admin/handler_import_export.php 1.14.0 für den vollständigen Hintergrund.
 - Changelog: 1.16.0 - Liga-Einstellungen speichern die Option ShowLogos nicht mehr (ersetzt durch die globale Einstellung "Mannschaftslogos anzeigen?"). Bereits gespeicherte Werte bleiben unangetastet und dienen nur noch als Rückfall, solange die globale Einstellung nie gesetzt wurde.
 - Changelog: 1.15.0 - Neue Aktion delete_install_php: löscht die fest verdrahtete Datei install.php im Installationsverzeichnis, nur per POST (CSRF wird zentral geprüft), mit requireLogin() und Eintrag im Admin-Log. Kein Dateiname aus der Anfrage. Meldet auch, wenn die Datei schon weg ist oder nicht gelöscht werden konnte (fehlende Schreibrechte, dann Hinweis auf FTP).
 - Changelog: 1.14.0 - Speichert die neue Einstellung ShowKarte (siehe admin/view_liga_settings.php 1.19.0), mit derselben Absicherung wie bei "stats"/"ticker": nur wenn das team-notizen-Addon installiert ist, sonst würde der Wert bei jedem Speichern dieses Tabs unbemerkt auf '0' zurückgesetzt.
@@ -432,6 +439,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/handler_wizard.php
 
+- Changelog: 1.5.0 - Sportart-Validierung im "Liga erstellen"-Assistenten nutzt jetzt dynamisch array_keys(SportRegistry::all()) statt einer festen Liste - siehe admin/handler_import_export.php 1.14.0 für den vollständigen Hintergrund.
 - Changelog: 1.4.0 - Der Liga-Erstellen-Assistent übernimmt jetzt die in Schritt 1 gewählte Sportart durch den kompletten Ablauf und übergibt sie an createLigaInDB() - die Liga wird direkt mit der richtigen Sportart angelegt, statt sie nachträglich in den Ligaeinstellungen ändern zu müssen.
 - Changelog: 1.3.2 - interne Bezeichnungen jetzt durchgehend auf Englisch ("League Key" statt der vorherigen deutschen Bezeichnung) – Funktionsname, Konstante und interner Modus-Wert entsprechend angepasst (siehe bootstrap.php/league-key_data.php)
 - Changelog: 1.3.1 - Bugfix: liest Teamzahl jetzt aus dem zum Liga-Typ passenden, dauerhaft eigenen Feld ("team_count_liga"/"team_count_ko" statt eines gemeinsamen "team_count"), siehe view_wizard.php 1.3.1 für die Ursache. Liga-Maximum außerdem von 128 auf 256 angehoben (passend zum max-Attribut im Formular)
@@ -534,7 +542,9 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/view_liga_settings.php
 
-- Changelog: 1.20.0 - Checkbox "Logo anzeigen" aus Einstellungen > Anzeigen/Darstellung der einzelnen Ligen entfernt, jetzt global unter Einstellungen > Optionen > Anzeigen/Darstellung.
+- Changelog: 1.22.0 - Beitrag: Nutzeranfrage - "Kegeln" erscheint jetzt automatisch in der Sportart-Auswahl (nutzt bereits SportRegistry::all(), keine eigene Änderung an der Dropdown-Liste nötig). Nebenbei: die "keine Unentschieden"-Anzeige war bisher an einer festen Liste ['football','handball'] festgemacht, die bei jeder neuen Sportart hätte erneut gepflegt werden müssen - jetzt dynamisch aus SportProfile::supportsDraws() aller registrierten Sportarten gebaut (auch der JavaScript-Teil beim Umschalten des Dropdowns), bleibt dadurch automatisch korrekt für künftige Sportarten.
+- Changelog: 1.21.0 - Beitrag: Nutzeranfrage - Standardwert für "Spielfrei anzeigen" (ShowSpielfrei) auf deaktiviert geändert. Betrifft Ligen ohne explizit gespeicherten Wert - weder "Liga erstellen" noch der .l98-Import legen dafür eine eigene liga_options-Zeile an, beide hingen bisher ausschließlich am Fallback-Wert dieser Checkbox-Anzeige.
+- Changelog: 1.20.0 - Checkbox "Logo anzeigen" aus Einstellungen > Anzeigen/Darstellung der einzelnen Ligen entfernt (Beitrag: Nutzeranfrage) - jetzt global unter Einstellungen > Optionen > Anzeigen/Darstellung.
 - Changelog: 1.19.0 - Neue Checkbox "Karte anzeigen" (Schlüssel ShowKarte) im Tab Anzeigen/Darstellung, direkt unter "Ligastatistik" - nur sichtbar, wenn das team-notizen-Addon aktiv ist (gleiches Muster wie die "Spielerstatistik"-Checkbox beim player-Addon). Standardmäßig deaktiviert (kein gesetzter Options-Wert = unchecked, wie bei allen anderen Checkboxen hier). Steuert künftig die Sichtbarkeit einer neuen Kartenansicht (Team-Standorte aus den Stadion-Geo-Daten des team-notizen-Addons) - die Ansicht selbst folgt in einem späteren Schritt, hier zunächst nur der Schalter dafür.
 - Changelog: 1.18.0 - Stilkorrektur (siehe addon/addon-manager/view_addons.php 2.5.0 für den vollständigen Hintergrund): die einzige Stelle in dieser Datei mit PHP-Kurzsyntax (if/else: ... endif;) auf geschweifte-Klammer-Syntax umgestellt. Keine Verhaltensänderung.
 
@@ -915,6 +925,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/de.php
 
+- Changelog: 1.54.0 - Neuer Schlüssel wartung_error_not_native_backup.
 - Changelog: 1.53.0 - Neue Schlüssel settings_label_show_team_logos/settings_hint_show_team_logos. Der Schlüssel ls_label_show_logos wird nicht mehr verwendet (bewusst nicht entfernt, harmlos).
 - Changelog: 1.52.0 - Neue Schlüssel install_delete_btn/_confirm/_ok/_gone/_failed (Löschen-Button für install.php).
 - Changelog: 1.51.0 - Neuer Schlüssel install_leftover_warning (Hinweis auf liegen gebliebene install.php).
@@ -1030,6 +1041,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/en.php
 
+- Changelog: 1.53.0 - New key wartung_error_not_native_backup.
 - Changelog: 1.52.0 - New keys settings_label_show_team_logos/settings_hint_show_team_logos. Key ls_label_show_logos is no longer used (intentionally left in place, harmless).
 - Changelog: 1.51.0 - New keys install_delete_btn/_confirm/_ok/_gone/_failed (delete button for install.php).
 - Changelog: 1.50.0 - New key install_leftover_warning (notice about leftover install.php).
@@ -1325,6 +1337,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## liga.php
 
+- Changelog: 3.26.0 - Standardwert für ShowSpielfrei (Fallback ohne gespeicherten Wert) auf deaktiviert geändert - siehe admin/view_liga_settings.php 1.21.0 für den vollständigen Hintergrund.
 - Changelog: 3.25.0 - $showLogos wird jetzt über showTeamLogos($opts) ermittelt (globale Einstellung statt Liga-Option ShowLogos).
 - Changelog: 3.24.0 - KRITISCHER Bugfix (gemeldet: "Link zum Spielbericht" wird auf der Ergebnisseite nicht angezeigt, obwohl die Einstellung gesetzt ist; dieselbe Frage auch zu Mannschafts-Homepages) - die Liga-Einstellungen "Spielberichte verlinken" (urlB) und "Mannschafts-Homepages verlinken" (urlT) wurden bisher an KEINER Stelle im Frontend gelesen, obwohl beide Checkboxen im Admin seit Langem existieren und korrekt gespeichert werden - ein Blindgänger-Setting. Beide Werte werden jetzt aus getLigaOptions() gelesen und an renderResultsTable() durchgereicht (beide renderResultsTable()-Aufrufstellen betroffen: reguläre Ergebnistabelle und die gruppierte KO-Finalrunden-Ansicht).
 - Changelog: 3.23.0 - Bugfix (die untere Vorheriger/Naechster-Spieltag-Leiste stand bei den Ergebnissen unterhalb des PDF-Buttons, bei der Tabelle dagegen oberhalb): $pdfButtonHtml wird jetzt erst NACH der unteren Navigationsleiste angehaengt, statt bereits am Ende von $ergebnisInhalt zu stehen - Reihenfolge jetzt identisch zur Tabellen-Ansicht (Inhalt, Navigationsleiste, PDF-Button).
@@ -1431,6 +1444,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/LigaRepositoryTrait.php
 
+- Changelog: 1.4.0 - Docblock-Kommentar um die neue Sportart "kegeln" ergänzt (rein dokumentarisch, keine Verhaltensänderung).
 - Changelog: 1.3.0 - Neues Flag "karte" in getLigaViewFlags() (Quelle: liga_options "ShowKarte", Default false) - steuert den neuen "Karte"-Reiter auf der Liga-Detailseite (team-notizen-Addon, Übersichtskarte der Team-Standorte), analog zum bestehenden "spielerstatistik"-Flag des Player-Addons.
 - Changelog: 1.2.0 - getLigaOptions() ruft jetzt vor dem Cachen der Rückgabe migrateFavSelTeamToStableId() auf (siehe TeamRepositoryTrait.php 1.1.0 für den vollständigen Hintergrund) - stellt sicher, dass jede Liga beim ersten Frontend-Zugriff automatisch von der alten, positionsbasierten favTeam/selTeam-Logik auf die stabile Team-ID migriert wird.
 - Changelog: 1.1.0 - Neue Funktion getLigaSportType() (Beitrag: Torsten Hofmann).
@@ -1443,6 +1457,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/RenderViewsTrait.php
 
+- Changelog: 1.34.0 - Fortsetzung der ColTore/ColPkt-Korrektur (1.33.0): renderStrafHinweis() bekommt jetzt denselben namePkt-Ersatztext für den "+N Pkt."-Tooltip-Teil bei manuellen Punktkorrekturen übergeben, an beiden Aufrufstellen (reguläre Tabelle UND die sportartspezifische Tabelle für Volleyball & Co. in renderDynamicStandingsTable()). Die Label-Ermittlung (colToreLabel/colPktLabel) wurde dafür vor die Zeilen-Schleife gezogen, die sie jetzt ebenfalls benötigt.
+- Changelog: 1.33.0 - "Alternative für Tore: Holz" in den Liga-Einstellungen einer Kegel-Liga hatte keine Wirkung, die Tabelle zeigte weiterhin fest "Tore" als Spaltenüberschrift - die Spaltenköpfe ColTore/ColPkt der Tabellenansicht waren fest auf die Übersetzung "Tore"/"Pkt." verdrahtet und lasen die Liga-Einstellungen nameTor/namePkt nie - obwohl diese im Admin korrekt gespeichert wurden (nur dort nie wieder gelesen). Jetzt: eigener Wert aus den Liga-Einstellungen, wenn gesetzt, sonst weiterhin die normale Übersetzung - identischer Rückfall wie in der Eingabemaske selbst. Betrifft nur die reguläre Tabellenansicht (Fußball & Sportarten ohne eigene Darstellungsmodi); eine ähnliche, kleinere Inkonsistenz bleibt in der Straf-Fußnote (StandingsTrait.php, "+N Pkt."-Zusatztext bei manuellen Punktkorrekturen) bewusst unangetastet - dort müsste $opts erst durch mehrere weitere Funktionssignaturen durchgereicht werden, eigene, kleinere Ausbaustufe bei Bedarf.
 - Changelog: 1.32.0 - Alle fünf Stellen, die bisher direkt die Liga-Option ShowLogos gelesen haben, nutzen jetzt self::showTeamLogos() (globale Einstellung mit Rückfall auf die alte Liga-Option).
 - Changelog: 1.31.0 - renderPartieRow()/renderResultsTable() bekommen zwei neue Parameter $linkHomepage/$linkBerichte. Baut bei aktivem $linkBerichte und vorhandener, gültiger http(s)-bericht_url ein neues 📋-Link-Icon (setzt den Bugfix "Spielbericht-Link wird nicht angezeigt" um) - landet zusammen mit dem bestehenden Teamvergleich-Icon in derselben "col-vergleich"-Zelle, kein neuer Spaltenkopf nötig. $linkHomepage wird an partieTeamNameWithLogo()/-Reversed() durchgereicht.
 - Changelog: 1.30.0 - Bugfix (Teamnamen in der Spielplan-Sidebar der Matchday-Vorlage zu lang für mobile Ansichten): der an team_sidebar_item.tpl.php (und die sportartspezifische Dropdown-Variante) übergebene "Kurz"-Platzhalter wurde trotz seines Namens tatsächlich mit dem mittleren (oder sogar vollen) Teamnamen befüllt, nie mit dem echten Kurznamen (teams_global.kurz). Jetzt korrekt kurz zuerst, mit Rückfall auf mittel dann name, falls kurz leer ist.
@@ -1493,11 +1509,10 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/StandingsTrait.php
 
+- Changelog: 1.14.0 - renderStrafHinweis() bekommt einen neuen optionalen Parameter $pktLabel (Fortsetzung der ColTore/ColPkt-Korrektur in RenderViewsTrait.php 1.33.0): der "+N Pkt."-Teil des Tooltips bei manuellen Punktkorrekturen zeigte bisher immer die feste Übersetzung "Pkt.", unabhängig von der Liga-Einstellung "Alternative für Pkt." (namePkt). Leerer String (Default) bedeutet weiterhin "normale Übersetzung verwenden", identischer Rückfall wie bei den Tabellen-Spaltenköpfen selbst.
 - Changelog: 1.12.1 - KRITISCHER Bugfix ("Champions-League-Qualifikanten" auf 1 gesetzt und "Meister wird ausgespielt" aktiv, aber der Tabellenzweite bekam keine Markierung, während Meister und Absteiger korrekt markiert wurden): computeStandingsMarkerColor() zählte CL/CK/UC bisher IMMER ab Platz 1 (index=0), unabhängig davon, ob die Meister-Markierung Platz 1 bereits separat belegt. Bei CL=0 deckte "index < CL+CK" den Bereich [0, CK) ab - exakt Platz 1, der aber durch den früheren "index===0 && champEnabled"-Zweig schon per return abgefangen wird und diesen Zweig nie erreicht. Platz 2 (der eigentlich gemeinte erste freie Platz nach dem Meister) wurde dadurch nie erreicht. Behoben mit einem neuen $champOffset, der die CL/CK/UC-Zählung um 1 Platz verschiebt, wenn die Meister-Markierung aktiv ist. Mit drei Szenarien verifiziert: dem genauen Fall (Champ+CK=1, jetzt korrekt Platz 2 markiert), einer Regression ohne Champ-Markierung (CL=3, unverändert Plätze 1-3), und einer Kombination aus allen vier Kategorien (Champ/CL/CK/UC nacheinander ohne Lücke oder Überlappung).
-
 - Changelog: 1.12.0 - Feature (Praxisbeispiel: DFB-Sportgerichte werten Spiele bei kollektivem Spielabbruch, gemeinsamem Verlassen des Spielfelds, nicht spielberechtigten Akteuren auf beiden Seiten oder beidseitigem Nichtantritt als "für beide Mannschaften verloren", meist 0:2 für beide Teams): neue dritte Grüne-Tisch-Entscheidung gt_entscheidung=3 ("beide Mannschaften verlieren"), neben den bestehenden 1/2 (Heim/Gast siegt). Da bei dieser Entscheidung kein Team gegen das andere gewinnt, lässt sich das NICHT über das bisherige symmetrische h_tore/g_tore-Paar abbilden (dort würde das eine Team zwangsläufig genau die Tore "gewinnen", die das andere "verliert") - computeStandings() bekommt dafür einen eigenständigen Verarbeitungspfad, der beide Teams unabhängig voneinander als Niederlage mit je 0 geschossenen/GtToreBeideVerlieren (neue Liga-Einstellung, Default 2) kassierten Toren zählt. gtCreditedScore() liefert für entscheidung=3 weiterhin "0:0" zur reinen Anzeige zurück (Dokumentation klargestellt: das ist jetzt ein bewusster Wert, keine reine Fallback-Behandlung mehr). Mit einem Test gegen das DFB-Szenario verifiziert: beide Teams 0 Punkte, Tordifferenz je -2, keins zählt als Sieger.
 - Changelog: 1.11.1 - KRITISCHER Bugfix (gemeldet, mit einem historischen Praxisbeispiel belegt: DDR-Fußball-Oberliga 1962/63, wo die Partien Magdeburg-Jena und Halle-Magdeburg per Grüner-Tisch-Entscheidung jeweils mit 0:0 UND einem Sieg für den unschuldigen Gegner gewertet wurden, weil Magdeburg keinen sportärztlichen Nachweis erbrachte - nachstellbar, indem GtToreGespielt/GtToreNichtantritt in den Liga-Einstellungen auf 0 gesetzt werden): computeStandings() leitete Sieg/Unentschieden/Niederlage bisher AUSSCHLIESSLICH aus dem Vergleich der "gewerteten" Tore ($ht/$gt aus gtCreditedScore()) ab. Werden die Vorgabe-Tore auf 0 gesetzt, liefert gtCreditedScore() für beide Teams 0:0 zurück - rechnerisch nicht mehr von einem echten Unentschieden zu unterscheiden, obwohl gt_entscheidung einen klaren Sieger festlegt. Der Sieger einer Grünen-Tisch-Entscheidung steht aber per Definition fest, unabhängig vom (ggf. bewusst auf 0:0 gesetzten) angezeigten Ergebnis. Behoben: der Sieger wird jetzt bei einer GT-Entscheidung direkt aus gt_entscheidung ermittelt (neue Variable $gtHeimGewinnt), mit Vorrang vor jedem Torevergleich - sowohl im normalen Sieg/Unentschieden/Niederlage-Zweig als auch im Volleyball-Zweig (dort bekommt der GT-Sieger die vollen "3:0"-Punkte, da es kein echtes Satzergebnis gibt). Mit vier Testfällen verifiziert: echtes Unentschieden ohne GT (weiterhin korrekt), echter Sieg ohne GT (weiterhin korrekt), GT mit den bisherigen Standard-Toren 2:0 (keine Regression), und GT mit auf 0 gesetzten Toren (der gemeldete Bug - jetzt korrekt als Sieg statt Unentschieden gewertet).
-
 - Changelog: 1.11.0 - Default-Parameter $toreNichtantritt in gtCreditedScore() von 3 auf 2 geändert - beide Grüne-Tisch-Szenarien (Spiel fand statt/Nichtantritt) haben jetzt einheitlich 2:0 als Vorgabe, statt zuvor 2:0/3:0. Mit zwei Testfällen verifiziert.
 - Changelog: 1.10.0 - Feature (nach Recherche: die Standardwertung einer Grüne-Tisch-Entscheidung ist zwischen den 21 DFB-Landesverbänden NICHT einheitlich geregelt - z.B. 2:0 bei den meisten west-/norddeutschen Verbänden, 5:0 beim BFV/HFV/Badischen FV): gtCreditedScore() bekommt zwei neue, optionale Parameter ($toreGespielt=2, $toreNichtantritt=3) statt der bisherigen festen Werte - Defaults entsprechen dem bisherigen DFB-Standard, bestehende Aufrufer ohne die neuen Parameter bleiben unverändert lauffähig. computeStandings() liest die Werte jetzt aus liga_options (GtToreGespielt/GtToreNichtantritt), siehe admin/handler_settings.php für die Speicherung und admin/view_liga_settings.php für die Eingabe (freie Zahleneingabe statt fester Auswahl). Mit fünf Szenarien verifiziert (Standard, BFV-Modell 5:0, Ausnahmeregel bei höherem realen Ergebnis, Unterschreitung des Standards, Rückwärtskompatibilität ohne Angabe).
 - Changelog: 1.9.0 - Verfeinerung (nach Recherche zur DFB-Spielordnung): gtCreditedScore() unterscheidet jetzt zwei Szenarien statt einer pauschalen Wertung - 2:0-Standardwertung, wenn das Spiel stattgefunden hat (erkennbar an einem eingetragenen realen Ergebnis, auch ein Teilergebnis bei Abbruch zählt als "stattgefunden"), 3:0-Maximalstrafe bei Nichtantritt (kein reales Ergebnis eingetragen). Ersetzt die vorherige, an der internationalen FIFA/UEFA-Regel orientierte pauschale "immer 3:0"-Wertung aus Version 1.8.0. Die Ausnahme (reales, höheres Ergebnis der unschuldigen Mannschaft bleibt bestehen) gilt weiterhin, jetzt relativ zur jeweils passenden Standardwertung (>2 bzw. implizit >3, je nach Szenario) statt fest gegen 3. Mit fünf Testfällen verifiziert.
@@ -1918,6 +1933,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Sport/SportRegistry.php
 
+- Changelog: 1.1.0 - Neue Sportart "kegeln" (KegelnProfile) registriert - erscheint damit automatisch in jedem Dropdown, das SportRegistry::all() nutzt (Liga-Einstellungen, .l98-Import-Review).
 - Changelog: 1.0.0 - Neu (Beitrag: Torsten Hofmann): Factory für Sport-Profile nach Schlüssel. Unverändert übernommen.
 
 ## src/Sport/FootballProfile.php

@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: handler_settings.php
- * Fileversion: 1.16.0
+ * Fileversion: 1.17.0
  *
  * PHP version 8.2
  *
@@ -41,7 +41,9 @@ if ($action === 'save_liga_settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Sportart speichern (Beitrag: Torsten Hofmann, in liga-Tabelle,
                 // nicht liga_options - siehe getLigaSportType() in LigaRepositoryTrait.php)
                 $sportType = trim($_POST['sport_type'] ?? 'football');
-                if (!in_array($sportType, ['football', 'volleyball', 'icehockey', 'basketball', 'handball', 'badminton'], true)) {
+                // Dynamisch aus SportRegistry statt einer festen Liste - siehe
+                // Kommentar bei derselben Prüfung in handler_import_export.php.
+                if (!in_array($sportType, array_keys(\LMOnext\Sport\SportRegistry::all()), true)) {
                     $sportType = 'football';
                 }
                 $db->prepare('UPDATE '.tbl('liga').' SET sport_type=? WHERE id=?')->execute([$sportType, $lid]);

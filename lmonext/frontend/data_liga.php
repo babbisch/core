@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: frontend/data_liga.php
- * Fileversion: 3.8.0
+ * Fileversion: 3.10.0
  *
  * PHP version 8.2
  *
@@ -207,9 +207,9 @@ function partieTeamNameWithLogoReversed(array $partie, string $side, bool $showL
     return \LMOnext\Liga\LigaService::partieTeamNameWithLogoReversed($partie, $side, $showLogos, $linkHomepage);
 }
 
-function partieZeitDisplay(array $partie, ?string $spieltagStart) : string
+function partieZeitDisplay(array $partie, ?string $spieltagStart, string $dateFormat = 'd.m.Y H:i') : string
 {
-    return \LMOnext\Liga\LigaService::partieZeitDisplay($partie, $spieltagStart);
+    return \LMOnext\Liga\LigaService::partieZeitDisplay($partie, $spieltagStart, $dateFormat);
 }
 
 function spieltagDateRange(array $partien, ?string $spieltagStart) : string
@@ -242,9 +242,9 @@ function renderPartieRow(array $partie, ?string $spieltagStart = null, ?int $fav
     return \LMOnext\Liga\LigaService::renderPartieRow($partie, $spieltagStart, $favTeamId, $showLogos, $reverseHeim);
 }
 
-function renderResultsTable(array $partien, ?string $spieltagStart, ?int $favTeamId = null, bool $showLogos = false, bool $reverseHeim = false, bool $linkHomepage = false, bool $linkBerichte = false) : string
+function renderResultsTable(array $partien, ?string $spieltagStart, ?int $favTeamId = null, bool $showLogos = false, bool $reverseHeim = false, bool $linkHomepage = false, bool $linkBerichte = false, string $dateFormat = 'd.m.Y H:i') : string
 {
-    return \LMOnext\Liga\LigaService::renderResultsTable($partien, $spieltagStart, $favTeamId, $showLogos, $reverseHeim, $linkHomepage, $linkBerichte);
+    return \LMOnext\Liga\LigaService::renderResultsTable($partien, $spieltagStart, $favTeamId, $showLogos, $reverseHeim, $linkHomepage, $linkBerichte, $dateFormat);
 }
 
 function renderStatsBlock(string $heading, array $partien) : string
@@ -382,14 +382,14 @@ function computeTeamDetailStats(int $teamId, array $teams, array $partien, array
     return \LMOnext\Liga\LigaService::computeTeamDetailStats($teamId, $teams, $partien, $standing);
 }
 
-function renderTeamStatBox(array $stat, int $teamId = 0, bool $showLogos = false) : string
+function renderTeamStatBox(array $stat, int $teamId = 0, bool $showLogos = false, string $toreLabel = '') : string
 {
-    return \LMOnext\Liga\LigaService::renderTeamStatBox($stat, $teamId, $showLogos);
+    return \LMOnext\Liga\LigaService::renderTeamStatBox($stat, $teamId, $showLogos, $toreLabel);
 }
 
-function renderOverallStatsBlock(array $teams, array $partien) : string
+function renderOverallStatsBlock(array $teams, array $partien, string $toreLabel = '') : string
 {
-    return \LMOnext\Liga\LigaService::renderOverallStatsBlock($teams, $partien);
+    return \LMOnext\Liga\LigaService::renderOverallStatsBlock($teams, $partien, $toreLabel);
 }
 
 function renderLigastatistikView(int $ligaId, array $allSpieltage, ?int $team1Id, ?int $team2Id) : string

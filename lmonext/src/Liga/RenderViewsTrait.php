@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/RenderViewsTrait.php
- * Fileversion: 1.34.0
+ * Fileversion: 1.36.0
  *
  * PHP version 8.2
  *
@@ -70,7 +70,7 @@ trait RenderViewsTrait
      * (template/<aktiv>/partials/partie_row.tpl.php). $spieltagStart dient als
      * Datums-Fallback, falls die einzelne Partie keine eigene Zeit hat.
      */
-    public static function renderPartieRow(array $partie, ?string $spieltagStart = null, ?int $favTeamId = null, bool $showLogos = false, bool $reverseHeim = false, bool $linkHomepage = false, bool $linkBerichte = false) : string
+    public static function renderPartieRow(array $partie, ?string $spieltagStart = null, ?int $favTeamId = null, bool $showLogos = false, bool $reverseHeim = false, bool $linkHomepage = false, bool $linkBerichte = false, string $dateFormat = 'd.m.Y H:i') : string
     {
         $heimRaw  = self::partieTeamName($partie, 'heim');
         $gastRaw  = self::partieTeamName($partie, 'gast');
@@ -85,7 +85,7 @@ trait RenderViewsTrait
         // in SpieltagRepositoryTrait.php); fehlt es, wird auf 'football'
         // zurückgefallen (bisheriges Verhalten, 100% rückwärtskompatibel).
         $score    = self::formatScore($partie, $partie['_liga_id'] ?? null, true);
-        $datum    = h(self::partieZeitDisplay($partie, $spieltagStart));
+        $datum    = h(self::partieZeitDisplay($partie, $spieltagStart, $dateFormat));
         $hId      = (int)($partie['heim_id'] ?? 0);
         $gId      = (int)($partie['gast_id'] ?? 0);
         $berichtUrl = ($linkBerichte && !empty($partie['bericht_url']) && preg_match('#^https?://#i', (string)$partie['bericht_url']))
@@ -118,11 +118,11 @@ trait RenderViewsTrait
      * Jede Zeile bekommt zusätzlich ein Vergleichs-Icon (direkter Vergleich der
      * beiden Teams, siehe renderH2hIcon()/renderH2hModalAssets()).
      */
-    public static function renderResultsTable(array $partien, ?string $spieltagStart, ?int $favTeamId = null, bool $showLogos = false, bool $reverseHeim = false, bool $linkHomepage = false, bool $linkBerichte = false) : string
+    public static function renderResultsTable(array $partien, ?string $spieltagStart, ?int $favTeamId = null, bool $showLogos = false, bool $reverseHeim = false, bool $linkHomepage = false, bool $linkBerichte = false, string $dateFormat = 'd.m.Y H:i') : string
     {
         $rows = '';
         foreach ($partien as $partie) {
-            $rows .= self::renderPartieRow($partie, $spieltagStart, $favTeamId, $showLogos, $reverseHeim, $linkHomepage, $linkBerichte);
+            $rows .= self::renderPartieRow($partie, $spieltagStart, $favTeamId, $showLogos, $reverseHeim, $linkHomepage, $linkBerichte, $dateFormat);
         }
         return renderPartial('results_table', [
             'ColDatum'    => h(tf('liga_col_datum')),
@@ -888,7 +888,9 @@ trait RenderViewsTrait
     public static function renderTeamScheduleView(int $ligaId, array $allSpieltage, ?int $selectedTeamId) : string
     {
         $teams     = self::getLigaTeamsList($ligaId);
-        $showLogos = self::showTeamLogos(self::getLigaOptions($ligaId));
+        $opts      = self::getLigaOptions($ligaId);
+        $showLogos = self::showTeamLogos($opts);
+        $dateFormat = (string)($opts['DatF'] ?? 'd.m.Y H:i');
         // Team-Auswahl sportartabhängig (Dropdown nur bei
         // Volleyball, alle anderen Sportarten behalten die bisherige
         // Sidebar-Liste bei) - Vorbild für das Dropdown: Torsten Hofmanns
@@ -941,7 +943,7 @@ trait RenderViewsTrait
                 $gastRaw = self::partieTeamName($p, 'gast');
                 $rowsHtml .= renderPartial('team_schedule_row', [
                     'Nr'           => (string)$p['_spieltag_nummer'],
-                    'Datum'        => h(self::partieZeitDisplay($p, null)),
+                    'Datum'        => h(self::partieZeitDisplay($p, null, $dateFormat)),
                     'HeimClass'    => $hId === $selectedTeamId ? ' schedule-own' : '',
                     'GastClass'    => $gId === $selectedTeamId ? ' schedule-own' : '',
                     'Heim'         => self::partieTeamNameWithLogoReversed($p, 'heim', $showLogos),
@@ -1170,7 +1172,25 @@ trait RenderViewsTrait
      * Baut eine einzelne Team-Statistik-Box (Position, Punkte, Siege/
      * Niederlagen inkl. Extremwerten, aktuelle Serie, Restprogramm).
      */
-    public static function renderTeamStatBox(array $stat, int $teamId = 0, bool $showLogos = false) : string
+    /**
+     * Ersetzt das Wort "Tore" in einem übersetzten Label durch den
+     * liga-eigenen Ersatztext (Fortsetzung der nameTor-Korrektur aus
+     * der Tabellenansicht - galt bisher nur dort, die Ligastatistik-Seite
+     * zeigte an sechs Stellen weiterhin "Tore" "Tore ges." "Heim-Tore"
+     * "Auswärts-Tore" "Tore Spiel" "Die meisten Tore" fest, unabhängig
+     * von der Liga-Einstellung "Alternative für Tore"). $toreLabel leer
+     * (nicht gesetzt) bedeutet "Label unverändert lassen", identischer
+     * Rückfall wie bei ColTore selbst - funktioniert dadurch für jedes
+     * Label, das "Tore" als eigenständiges Wort enthält, ohne jede Stelle
+     * einzeln nachzupflegen.
+     */
+    private static function substituteToreWord(string $labelKey, string $toreLabel) : string
+    {
+        $text = tf($labelKey);
+        return $toreLabel !== '' ? str_ireplace('Tore', $toreLabel, $text) : $text;
+    }
+
+    public static function renderTeamStatBox(array $stat, int $teamId = 0, bool $showLogos = false, string $toreLabel = '') : string
     {
         $bw = $stat['bestWin'];
         $bestWinTxt = $bw
@@ -1199,8 +1219,8 @@ trait RenderViewsTrait
         $html .= '<tr><td>' . h(tf('liga_stat_points')) . '</td><td>' . h((string)$stat['pkt']) . '</td></tr>';
         $html .= '<tr><td>' . h(tf('liga_stat_played')) . '</td><td>' . h((string)$stat['sp']) . '</td></tr>';
         $html .= '<tr><td>' . h(tf('liga_stat_ppg')) . '</td><td>' . h((string)$stat['ppg']) . '</td></tr>';
-        $html .= '<tr><td>' . h(tf('liga_stat_goals')) . '</td><td>' . h((string)$stat['toreH']) . ':' . h((string)$stat['toreG']) . '</td></tr>';
-        $html .= '<tr><td>' . h(tf('liga_stat_goals_per_game')) . '</td><td>' . h($stat['goalsPerGame']) . '</td></tr>';
+        $html .= '<tr><td>' . h(self::substituteToreWord('liga_stat_goals', $toreLabel)) . '</td><td>' . h((string)$stat['toreH']) . ':' . h((string)$stat['toreG']) . '</td></tr>';
+        $html .= '<tr><td>' . h(self::substituteToreWord('liga_stat_goals_per_game', $toreLabel)) . '</td><td>' . h($stat['goalsPerGame']) . '</td></tr>';
         $html .= '<tr><td>' . h(tf('liga_stat_wins')) . '</td><td>' . h((string)$stat['wins']) . ' (' . h((string)$stat['winPct']) . '%)</td></tr>';
         $html .= '<tr><td>' . h(tf('liga_stat_best_win')) . '</td><td>' . $bestWinTxt . '</td></tr>';
         $html .= '<tr><td>' . h(tf('liga_stat_losses')) . '</td><td>' . h((string)$stat['losses']) . ' (' . h((string)$stat['lossPct']) . '%)</td></tr>';
@@ -1215,7 +1235,7 @@ trait RenderViewsTrait
      * Baut den immer sichtbaren "Statistische Daten zur Liga"-Block: Spiele,
      * Tore, Extremwerte, Serien-Rekorde (ligaweit).
      */
-    public static function renderOverallStatsBlock(array $teams, array $partien) : string
+    public static function renderOverallStatsBlock(array $teams, array $partien, string $toreLabel = '') : string
     {
         $totalGames = 0;
         $homeWins   = 0;
@@ -1261,7 +1281,7 @@ trait RenderViewsTrait
         $html .= '</table>';
     
         $html .= '<table class="ligastat-overall">';
-        $html .= '<tr><th>' . h(tf('liga_stat_goals_total')) . '</th><th>' . h(tf('liga_stat_home_goals')) . '</th><th>' . h(tf('liga_stat_away_goals')) . '</th></tr>';
+        $html .= '<tr><th>' . h(self::substituteToreWord('liga_stat_goals_total', $toreLabel)) . '</th><th>' . h(self::substituteToreWord('liga_stat_home_goals', $toreLabel)) . '</th><th>' . h(self::substituteToreWord('liga_stat_away_goals', $toreLabel)) . '</th></tr>';
         $html .= '<tr><td><strong>' . $totalGoals . '</strong> (Ø ' . $avg($totalGoals, $totalGames) . ')</td><td>' . $homeGoals . ' (' . $pct($homeGoals, $totalGoals) . ', Ø ' . $avg($homeGoals, $totalGames) . ')</td><td>' . $awayGoals . ' (' . $pct($awayGoals, $totalGoals) . ', Ø ' . $avg($awayGoals, $totalGames) . ')</td></tr>';
         $html .= '</table>';
     
@@ -1272,7 +1292,7 @@ trait RenderViewsTrait
             $html .= '<p><strong>' . h(tf('liga_stat_highest_away_win')) . '</strong><br>' . implode('<br>', array_map($matchLine, $extremes['awayWins'])) . '</p>';
         }
         if (!empty($extremes['mostGoals'])) {
-            $html .= '<p><strong>' . h(tf('liga_stat_most_goals')) . '</strong><br>' . implode('<br>', array_map($matchLine, $extremes['mostGoals'])) . '</p>';
+            $html .= '<p><strong>' . h(self::substituteToreWord('liga_stat_most_goals', $toreLabel)) . '</strong><br>' . implode('<br>', array_map($matchLine, $extremes['mostGoals'])) . '</p>';
         }
     
         $records = self::computeAllTeamsStreakRecords($teams, $partien);
@@ -1308,6 +1328,9 @@ trait RenderViewsTrait
         $partien  = self::getAllLigaPartien($allSpieltage, $ligaId);
         $standing = self::computeStandings($teams, $partien, $opts, $ligaId);
         $showLogos = self::showTeamLogos($opts);
+        // Siehe substituteToreWord() - gleicher Rückfall wie bei ColTore
+        // in der Tabellenansicht (RenderViewsTrait::renderStandingsTable()).
+        $toreLabel = (string)($opts['nameTor'] ?? '');
     
         $pickerOptions = '<option value="0">– ' . h(tf('liga_stat_pick_team')) . ' –</option>';
         foreach ($teams as $t) {
@@ -1337,7 +1360,7 @@ trait RenderViewsTrait
             $html .= '<p class="ligastat-chances"><strong>' . h(tf('liga_stat_chances')) . ':</strong> '
                    . h($stat1['name']) . ' ' . $chance1 . '% – ' . $chance2 . '% ' . h($stat2['name']) . '</p>';
     
-            $html .= '<div class="ligastat-compare">' . self::renderTeamStatBox($stat1, $team1Id, $showLogos) . self::renderTeamStatBox($stat2, $team2Id, $showLogos) . '</div>';
+            $html .= '<div class="ligastat-compare">' . self::renderTeamStatBox($stat1, $team1Id, $showLogos, $toreLabel) . self::renderTeamStatBox($stat2, $team2Id, $showLogos, $toreLabel) . '</div>';
     
             if ($stat1['remainingPpgAvg'] !== null && $stat2['remainingPpgAvg'] !== null) {
                 $r1 = round($stat1['remainingPpgAvg'], 2);
@@ -1356,11 +1379,11 @@ trait RenderViewsTrait
         } else {
             $soloId = $team1Id ?? $team2Id;
             $stat    = self::computeTeamDetailStats($soloId, $teams, $partien, $standing);
-            $html .= self::renderTeamStatBox($stat, $soloId, $showLogos);
+            $html .= self::renderTeamStatBox($stat, $soloId, $showLogos, $toreLabel);
         }
     
         $html .= '</div>';
-        $html .= self::renderOverallStatsBlock($teams, $partien);
+        $html .= self::renderOverallStatsBlock($teams, $partien, $toreLabel);
     
         return $html;
     }

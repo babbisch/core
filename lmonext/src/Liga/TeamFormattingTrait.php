@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/TeamFormattingTrait.php
- * Fileversion: 1.5.0
+ * Fileversion: 1.6.0
  *
  * PHP version 8.2
  *
@@ -204,7 +204,22 @@ trait TeamFormattingTrait
      * Datum/Uhrzeit einer einzelnen Partie: eigene Zeit falls gesetzt, sonst der
      * Start des Spieltags als Fallback.
      */
-    public static function partieZeitDisplay(array $partie, ?string $spieltagStart) : string
+    /**
+     * Formatiert Datum/Uhrzeit einer Partie für die Anzeige (Ergebnisse,
+     * Spielplan). $dateFormat ist ein PHP-date()-Formatstring - normalerweise
+     * die Liga-Einstellung "Format der Anstoßtermine" (DatF), z.B. "d.m.Y"
+     * (ohne Uhrzeit) oder "d.m.Y H:i" (mit Uhrzeit, der Standardwert).
+     *
+     * BUGFIX (gemeldet: "d.m.Y ohne Uhrzeit in den Einstellungen
+     * eingestellt, Ausgabe trotzdem mit Uhrzeit"): diese Funktion hatte das
+     * Format bisher fest auf "d.m.Y H:i" verdrahtet und die Liga-Einstellung
+     * DatF nie gelesen - unabhängig davon, was der Admin dort konfiguriert
+     * hatte. $dateFormat hat denselben Standardwert wie die Einstellung
+     * selbst (siehe admin/view_liga_settings.php: $o('DatF', 'd.m.Y H:i')),
+     * damit ein Aufruf ohne explizites Format sich unverändert wie bisher
+     * verhält.
+     */
+    public static function partieZeitDisplay(array $partie, ?string $spieltagStart, string $dateFormat = 'd.m.Y H:i') : string
     {
         $raw = $partie['zeit'] ?? null;
         if (empty($raw)) {
@@ -214,7 +229,7 @@ trait TeamFormattingTrait
             return '–';
         }
         try {
-            return (new \DateTime($raw))->format('d.m.Y H:i');
+            return (new \DateTime($raw))->format($dateFormat);
         } catch (\Throwable) {
             return '–';
         }

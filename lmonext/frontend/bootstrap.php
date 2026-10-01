@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: bootstrap.php
- * Fileversion: 1.15.0
+ * Fileversion: 1.15.1
  *
  * PHP version 8.2
  *
@@ -327,6 +327,7 @@ require_once dirname(__DIR__) . '/src/Sport/IceHockeyProfile.php';
 require_once dirname(__DIR__) . '/src/Sport/BasketballProfile.php';
 require_once dirname(__DIR__) . '/src/Sport/HandballProfile.php';
 require_once dirname(__DIR__) . '/src/Sport/BadmintonProfile.php';
+require_once dirname(__DIR__) . '/src/Sport/KegelnProfile.php';
 
 // ── Datenfunktionen (Abfragen) ────────────────────────────────────────────────
 require_once __DIR__ . '/data_home.php';

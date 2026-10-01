@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: bootstrap.php
- * Fileversion: 1.31.0
+ * Fileversion: 1.31.1
  *
  * PHP version 8.2
  *
@@ -141,6 +141,7 @@ require_once dirname(__DIR__) . '/src/Sport/IceHockeyProfile.php';
 require_once dirname(__DIR__) . '/src/Sport/BasketballProfile.php';
 require_once dirname(__DIR__) . '/src/Sport/HandballProfile.php';
 require_once dirname(__DIR__) . '/src/Sport/BadmintonProfile.php';
+require_once dirname(__DIR__) . '/src/Sport/KegelnProfile.php';
 
 ensureAdminSettings(); // legt admin_settings ggf. an (Funktionsdefinition weiter unten, aber dank Hoisting hier schon nutzbar)
 getCurrentLanguage('admin', getAdminSetting('language', DEFAULT_LANGUAGE)); // ermittelt/persistiert Sprache; kann bei ?lang=xx redirecten

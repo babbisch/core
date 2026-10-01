@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: lang/admin/en.php
- * Fileversion: 1.53.0
+ * Fileversion: 1.54.0
  *
  * PHP version 8.2
  *
@@ -663,6 +663,8 @@ return [
     'ls_heading_verlinkungen' => 'Links',
     'ls_cb_team_homepage'     => 'Link team homepages',
     'ls_cb_spielberichte'     => 'Link match reports',
+    'ls_opt_target_blank'     => 'New window',
+    'ls_opt_target_self'      => 'Same window',
     'ls_heading_playoff_mode' => 'Playoff mode – home game setting',
     'ls_label_modusauswahl'   => 'Mode selection',
     'ls_opt_mod_111'          => 'Mode: 1-1-1-...',

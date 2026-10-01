@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: liga.php
- * Fileversion: 3.26.0
+ * Fileversion: 3.28.0
  *
  * PHP version 8.2
  *
@@ -93,9 +93,11 @@ if ($liga === null) {
 $isKO         = getLigaType($ligaId) === 1;
 $opts         = getLigaOptions($ligaId);
 $flags        = getLigaViewFlags($opts);
-$showLogos    = showTeamLogos($opts);
-$linkTeamHomepages = ($opts['urlT'] ?? '0') === '1';
+$showLogos    = showTeamLogos($opts);$linkTeamHomepages = ($opts['urlT'] ?? '0') === '1';
 $linkSpielberichte  = ($opts['urlB'] ?? '0') === '1';
+$homepageTarget = ($opts['urlT_target'] ?? 'blank') === 'self' ? '_self' : '_blank';
+$berichtTarget  = ($opts['urlB_target'] ?? 'blank') === 'self' ? '_self' : '_blank';
+$datumsFormat = (string)($opts['DatF'] ?? 'd.m.Y H:i');
 $showSpielfrei = ($opts['ShowSpielfrei'] ?? '0') === '1';
 // Globale Einstellung (Admin → Einstellungen → Besucherbereich), gilt für
 // alle Liga-Typen und alle PDF-Exporte gleichermaßen. Blockiert bei
@@ -351,7 +353,7 @@ switch ($currentView) {
                 $groupDateRange = spieltagDateRange($groupPartien, $spieltag['start'] ?? null);
                 $headingWithRange = $heading . ($groupDateRange !== '' ? ' ' . $groupDateRange : '');
                 $ergebnisInhalt .= '<h3 class="spieltag-heading">' . h($headingWithRange) . '</h3>';
-                $ergebnisInhalt .= renderResultsTable($groupPartien, $spieltag['start'] ?? null, $favTeamId, $showLogos, true, $linkTeamHomepages, $linkSpielberichte);
+                $ergebnisInhalt .= renderResultsTable($groupPartien, $spieltag['start'] ?? null, $favTeamId, $showLogos, true, $linkTeamHomepages, $linkSpielberichte, $datumsFormat, $homepageTarget, $berichtTarget);
                 $ergebnisInhalt .= renderGtFootnotes($groupPartien);
                 $ergebnisInhalt .= renderStatsBlock($heading, $groupPartien);
             }
@@ -361,7 +363,7 @@ switch ($currentView) {
                 ? $currentName . ($dateRange !== '' ? ' ' . $dateRange : '')
                 : tf('liga_heading_matchday_range', ['n' => $currentNr, 'range' => $dateRange]);
             $ergebnisInhalt  = '<h3 class="spieltag-heading">' . h($headingText) . '</h3>';
-            $ergebnisInhalt .= renderResultsTable($partien, $spieltag['start'] ?? null, $favTeamId, $showLogos, true, $linkTeamHomepages, $linkSpielberichte);
+            $ergebnisInhalt .= renderResultsTable($partien, $spieltag['start'] ?? null, $favTeamId, $showLogos, true, $linkTeamHomepages, $linkSpielberichte, $datumsFormat, $homepageTarget, $berichtTarget);
             $ergebnisInhalt .= $showSpielfrei ? renderSpielfreiNote($ligaId, $partien) : '';
             $ergebnisInhalt .= renderGtFootnotes($partien);
             $ergebnisInhalt .= renderStatsBlock($currentName, $partien);

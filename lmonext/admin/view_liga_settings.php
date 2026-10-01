@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: view_liga_settings.php
- * Fileversion: 1.22.0
+ * Fileversion: 1.23.0
  *
  * PHP version 8.2
  *
@@ -564,12 +564,22 @@ if ($tab === 'grundwerte') { ?>
               <td></td>
               <td style="padding:5px 10px">
                 <label style="margin-right:16px"><input type="checkbox" name="urlT" value="1"<?= $oc('urlT')?' checked':'' ?>> <?= h(t('ls_cb_team_homepage')) ?></label>
+                <select name="urlT_target" style="background:var(--bg);border:1px solid var(--border);color:var(--text);
+                       border-radius:var(--radius);padding:4px 8px;font-size:.82rem">
+                  <option value="blank"<?= $o('urlT_target','blank')==='blank'?' selected':'' ?>><?= h(t('ls_opt_target_blank')) ?></option>
+                  <option value="self"<?= $o('urlT_target','blank')==='self'?' selected':'' ?>><?= h(t('ls_opt_target_self')) ?></option>
+                </select>
               </td>
             </tr>
             <tr>
               <td></td>
               <td style="padding:5px 10px">
-                <label><input type="checkbox" name="urlB" value="1"<?= $oc('urlB')?' checked':'' ?>> <?= h(t('ls_cb_spielberichte')) ?></label>
+                <label style="margin-right:16px"><input type="checkbox" name="urlB" value="1"<?= $oc('urlB')?' checked':'' ?>> <?= h(t('ls_cb_spielberichte')) ?></label>
+                <select name="urlB_target" style="background:var(--bg);border:1px solid var(--border);color:var(--text);
+                       border-radius:var(--radius);padding:4px 8px;font-size:.82rem">
+                  <option value="blank"<?= $o('urlB_target','blank')==='blank'?' selected':'' ?>><?= h(t('ls_opt_target_blank')) ?></option>
+                  <option value="self"<?= $o('urlB_target','blank')==='self'?' selected':'' ?>><?= h(t('ls_opt_target_self')) ?></option>
+                </select>
               </td>
             </tr>
 <?php if ($isKO) { ?>

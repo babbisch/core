@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/TeamFormattingTrait.php
- * Fileversion: 1.6.0
+ * Fileversion: 1.7.0
  *
  * PHP version 8.2
  *
@@ -174,13 +174,13 @@ trait TeamFormattingTrait
      * hinterlegten Homepage, wenn aktiv UND eine gültige http(s)-URL
      * hinterlegt ist.
      */
-    public static function partieTeamNameWithLogo(array $partie, string $side, bool $showLogos, bool $linkHomepage = false) : string
+    public static function partieTeamNameWithLogo(array $partie, string $side, bool $showLogos, bool $linkHomepage = false, string $linkTarget = '_blank') : string
     {
         $teamId = (int)($partie[$side . '_id'] ?? 0);
         $name = h(self::partieTeamName($partie, $side));
         $url = $linkHomepage ? self::safeHomepageUrl($partie[$side . '_url'] ?? null) : '';
         if ($url !== '') {
-            $name = '<a href="' . h($url) . '" target="_blank" rel="noopener">' . $name . '</a>';
+            $name = '<a href="' . h($url) . '"' . self::linkTargetAttr($linkTarget) . '>' . $name . '</a>';
         }
         return self::renderTeamLogoImg($teamId, $showLogos) . $name;
     }
@@ -190,15 +190,26 @@ trait TeamFormattingTrait
      * regulärer (nicht-KO-)Ligen verwendet. Der KO-Turnierbaum behält bewusst
      * die normale Logo-zuerst-Reihenfolge (nicht Teil dieser Anforderung).
      */
-    public static function partieTeamNameWithLogoReversed(array $partie, string $side, bool $showLogos, bool $linkHomepage = false) : string
+    public static function partieTeamNameWithLogoReversed(array $partie, string $side, bool $showLogos, bool $linkHomepage = false, string $linkTarget = '_blank') : string
     {
         $teamId = (int)($partie[$side . '_id'] ?? 0);
         $name = h(self::partieTeamName($partie, $side));
         $url = $linkHomepage ? self::safeHomepageUrl($partie[$side . '_url'] ?? null) : '';
         if ($url !== '') {
-            $name = '<a href="' . h($url) . '" target="_blank" rel="noopener">' . $name . '</a>';
+            $name = '<a href="' . h($url) . '"' . self::linkTargetAttr($linkTarget) . '>' . $name . '</a>';
         }
         return $name . self::renderTeamLogoImg($teamId, $showLogos);
+    }
+    /**
+     * Baut das target-/rel-Attribut-Fragment für einen Link, je nach
+     * gewünschtem Linkziel ('_blank'/'_self', siehe oben). Zentral an
+     * einer Stelle, damit beide Verlinkungs-Funktionen (Team-Homepage,
+     * Spielbericht - siehe RenderViewsTrait::renderPartieRow()) dasselbe
+     * Verhalten teilen.
+     */
+    public static function linkTargetAttr(string $linkTarget) : string
+    {
+        return $linkTarget === '_self' ? '' : ' target="_blank" rel="noopener"';
     }
     /**
      * Datum/Uhrzeit einer einzelnen Partie: eigene Zeit falls gesetzt, sonst der

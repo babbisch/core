@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/RenderViewsTrait.php
- * Fileversion: 1.36.0
+ * Fileversion: 1.37.0
  *
  * PHP version 8.2
  *
@@ -70,14 +70,14 @@ trait RenderViewsTrait
      * (template/<aktiv>/partials/partie_row.tpl.php). $spieltagStart dient als
      * Datums-Fallback, falls die einzelne Partie keine eigene Zeit hat.
      */
-    public static function renderPartieRow(array $partie, ?string $spieltagStart = null, ?int $favTeamId = null, bool $showLogos = false, bool $reverseHeim = false, bool $linkHomepage = false, bool $linkBerichte = false, string $dateFormat = 'd.m.Y H:i') : string
+    public static function renderPartieRow(array $partie, ?string $spieltagStart = null, ?int $favTeamId = null, bool $showLogos = false, bool $reverseHeim = false, bool $linkHomepage = false, bool $linkBerichte = false, string $dateFormat = 'd.m.Y H:i', string $homepageTarget = '_blank', string $berichtTarget = '_blank') : string
     {
         $heimRaw  = self::partieTeamName($partie, 'heim');
         $gastRaw  = self::partieTeamName($partie, 'gast');
         $heim     = $reverseHeim
-            ? self::partieTeamNameWithLogoReversed($partie, 'heim', $showLogos, $linkHomepage)
-            : partieTeamNameWithLogo($partie, 'heim', $showLogos, $linkHomepage);
-        $gast     = self::partieTeamNameWithLogo($partie, 'gast', $showLogos, $linkHomepage);
+            ? self::partieTeamNameWithLogoReversed($partie, 'heim', $showLogos, $linkHomepage, $homepageTarget)
+            : partieTeamNameWithLogo($partie, 'heim', $showLogos, $linkHomepage, $homepageTarget);
+        $gast     = self::partieTeamNameWithLogo($partie, 'gast', $showLogos, $linkHomepage, $homepageTarget);
         $gespielt = ($partie['h_tore'] !== null && $partie['g_tore'] !== null)
             || (int)($partie['gt_entscheidung'] ?? 0) > 0;
         // Sport-Profil-Anzeige (Beitrag: Torsten Hofmann) - _liga_id ist ein
@@ -91,7 +91,7 @@ trait RenderViewsTrait
         $berichtUrl = ($linkBerichte && !empty($partie['bericht_url']) && preg_match('#^https?://#i', (string)$partie['bericht_url']))
             ? (string)$partie['bericht_url'] : '';
         $berichtIcon = $berichtUrl !== ''
-            ? '<a href="' . h($berichtUrl) . '" target="_blank" rel="noopener" class="bericht-icon" title="' . h(tf('liga_link_spielbericht')) . '">📋</a>'
+            ? '<a href="' . h($berichtUrl) . '"' . self::linkTargetAttr($berichtTarget) . ' class="bericht-icon" title="' . h(tf('liga_link_spielbericht')) . '">📋</a>'
             : '';
 
         return renderPartial('partie_row', [
@@ -118,11 +118,11 @@ trait RenderViewsTrait
      * Jede Zeile bekommt zusätzlich ein Vergleichs-Icon (direkter Vergleich der
      * beiden Teams, siehe renderH2hIcon()/renderH2hModalAssets()).
      */
-    public static function renderResultsTable(array $partien, ?string $spieltagStart, ?int $favTeamId = null, bool $showLogos = false, bool $reverseHeim = false, bool $linkHomepage = false, bool $linkBerichte = false, string $dateFormat = 'd.m.Y H:i') : string
+    public static function renderResultsTable(array $partien, ?string $spieltagStart, ?int $favTeamId = null, bool $showLogos = false, bool $reverseHeim = false, bool $linkHomepage = false, bool $linkBerichte = false, string $dateFormat = 'd.m.Y H:i', string $homepageTarget = '_blank', string $berichtTarget = '_blank') : string
     {
         $rows = '';
         foreach ($partien as $partie) {
-            $rows .= self::renderPartieRow($partie, $spieltagStart, $favTeamId, $showLogos, $reverseHeim, $linkHomepage, $linkBerichte, $dateFormat);
+            $rows .= self::renderPartieRow($partie, $spieltagStart, $favTeamId, $showLogos, $reverseHeim, $linkHomepage, $linkBerichte, $dateFormat, $homepageTarget, $berichtTarget);
         }
         return renderPartial('results_table', [
             'ColDatum'    => h(tf('liga_col_datum')),
@@ -615,7 +615,6 @@ trait RenderViewsTrait
 
         $showMinuspunkte = ($opts['MinusPoints'] ?? '0') === '1';
         $footnoteNrs = self::assignStrafFootnotes($rows);
-
         $colToreLabel = (string)($opts['nameTor'] ?? '');
         $colPktLabel  = (string)($opts['namePkt'] ?? '');
 
@@ -1171,8 +1170,8 @@ trait RenderViewsTrait
     /**
      * Baut eine einzelne Team-Statistik-Box (Position, Punkte, Siege/
      * Niederlagen inkl. Extremwerten, aktuelle Serie, Restprogramm).
-     */
-    /**
+     *
+     *
      * Ersetzt das Wort "Tore" in einem übersetzten Label durch den
      * liga-eigenen Ersatztext (Fortsetzung der nameTor-Korrektur aus
      * der Tabellenansicht - galt bisher nur dort, die Ligastatistik-Seite

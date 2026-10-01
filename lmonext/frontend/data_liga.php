@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: frontend/data_liga.php
- * Fileversion: 3.10.0
+ * Fileversion: 3.11.0
  *
  * PHP version 8.2
  *
@@ -197,14 +197,14 @@ function showTeamLogos(array $opts) : bool
     return \LMOnext\Liga\LigaService::showTeamLogos($opts);
 }
 
-function partieTeamNameWithLogo(array $partie, string $side, bool $showLogos, bool $linkHomepage = false) : string
+function partieTeamNameWithLogo(array $partie, string $side, bool $showLogos, bool $linkHomepage = false, string $linkTarget = '_blank') : string
 {
-    return \LMOnext\Liga\LigaService::partieTeamNameWithLogo($partie, $side, $showLogos, $linkHomepage);
+    return \LMOnext\Liga\LigaService::partieTeamNameWithLogo($partie, $side, $showLogos, $linkHomepage, $linkTarget);
 }
 
-function partieTeamNameWithLogoReversed(array $partie, string $side, bool $showLogos, bool $linkHomepage = false) : string
+function partieTeamNameWithLogoReversed(array $partie, string $side, bool $showLogos, bool $linkHomepage = false, string $linkTarget = '_blank') : string
 {
-    return \LMOnext\Liga\LigaService::partieTeamNameWithLogoReversed($partie, $side, $showLogos, $linkHomepage);
+    return \LMOnext\Liga\LigaService::partieTeamNameWithLogoReversed($partie, $side, $showLogos, $linkHomepage, $linkTarget);
 }
 
 function partieZeitDisplay(array $partie, ?string $spieltagStart, string $dateFormat = 'd.m.Y H:i') : string
@@ -237,14 +237,14 @@ function groupPartienByPairing(array $partien) : array
     return \LMOnext\Liga\LigaService::groupPartienByPairing($partien);
 }
 
-function renderPartieRow(array $partie, ?string $spieltagStart = null, ?int $favTeamId = null, bool $showLogos = false, bool $reverseHeim = false) : string
+function renderPartieRow(array $partie, ?string $spieltagStart = null, ?int $favTeamId = null, bool $showLogos = false, bool $reverseHeim = false, bool $linkHomepage = false, bool $linkBerichte = false, string $dateFormat = 'd.m.Y H:i', string $homepageTarget = '_blank', string $berichtTarget = '_blank') : string
 {
-    return \LMOnext\Liga\LigaService::renderPartieRow($partie, $spieltagStart, $favTeamId, $showLogos, $reverseHeim);
+    return \LMOnext\Liga\LigaService::renderPartieRow($partie, $spieltagStart, $favTeamId, $showLogos, $reverseHeim, $linkHomepage, $linkBerichte, $dateFormat, $homepageTarget, $berichtTarget);
 }
 
-function renderResultsTable(array $partien, ?string $spieltagStart, ?int $favTeamId = null, bool $showLogos = false, bool $reverseHeim = false, bool $linkHomepage = false, bool $linkBerichte = false, string $dateFormat = 'd.m.Y H:i') : string
+function renderResultsTable(array $partien, ?string $spieltagStart, ?int $favTeamId = null, bool $showLogos = false, bool $reverseHeim = false, bool $linkHomepage = false, bool $linkBerichte = false, string $dateFormat = 'd.m.Y H:i', string $homepageTarget = '_blank', string $berichtTarget = '_blank') : string
 {
-    return \LMOnext\Liga\LigaService::renderResultsTable($partien, $spieltagStart, $favTeamId, $showLogos, $reverseHeim, $linkHomepage, $linkBerichte, $dateFormat);
+    return \LMOnext\Liga\LigaService::renderResultsTable($partien, $spieltagStart, $favTeamId, $showLogos, $reverseHeim, $linkHomepage, $linkBerichte, $dateFormat, $homepageTarget, $berichtTarget);
 }
 
 function renderStatsBlock(string $heading, array $partien) : string

@@ -389,6 +389,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/handler_settings.php
 
+- Changelog: 1.18.0 - Speichert die neuen Einstellungen urlT_target/urlB_target (Werte "blank"/"self"), siehe admin/view_liga_settings.php 1.23.0.
 - Changelog: 1.17.0 - Sportart-Validierung beim Speichern der Liga-Einstellungen nutzt jetzt dynamisch array_keys(SportRegistry::all()) statt einer festen Liste - siehe admin/handler_import_export.php 1.14.0 für den vollständigen Hintergrund.
 - Changelog: 1.16.0 - Liga-Einstellungen speichern die Option ShowLogos nicht mehr (ersetzt durch die globale Einstellung "Mannschaftslogos anzeigen?"). Bereits gespeicherte Werte bleiben unangetastet und dienen nur noch als Rückfall, solange die globale Einstellung nie gesetzt wurde.
 - Changelog: 1.15.0 - Neue Aktion delete_install_php: löscht die fest verdrahtete Datei install.php im Installationsverzeichnis, nur per POST (CSRF wird zentral geprüft), mit requireLogin() und Eintrag im Admin-Log. Kein Dateiname aus der Anfrage. Meldet auch, wenn die Datei schon weg ist oder nicht gelöscht werden konnte (fehlende Schreibrechte, dann Hinweis auf FTP).
@@ -543,6 +544,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/view_liga_settings.php
 
+- Changelog: 1.23.0 - Beitrag: Nutzeranfrage - neue Auswahl "Neues Fenster"/"Gleiches Fenster" neben "Mannschafts-Homepages verlinken" und "Spielberichte verlinken" (urlT_target/urlB_target), jeweils separat wählbar.
 - Changelog: 1.22.0 - Beitrag: Nutzeranfrage - "Kegeln" erscheint jetzt automatisch in der Sportart-Auswahl (nutzt bereits SportRegistry::all(), keine eigene Änderung an der Dropdown-Liste nötig). Nebenbei: die "keine Unentschieden"-Anzeige war bisher an einer festen Liste ['football','handball'] festgemacht, die bei jeder neuen Sportart hätte erneut gepflegt werden müssen - jetzt dynamisch aus SportProfile::supportsDraws() aller registrierten Sportarten gebaut (auch der JavaScript-Teil beim Umschalten des Dropdowns), bleibt dadurch automatisch korrekt für künftige Sportarten.
 - Changelog: 1.21.0 - Beitrag: Nutzeranfrage - Standardwert für "Spielfrei anzeigen" (ShowSpielfrei) auf deaktiviert geändert. Betrifft Ligen ohne explizit gespeicherten Wert - weder "Liga erstellen" noch der .l98-Import legen dafür eine eigene liga_options-Zeile an, beide hingen bisher ausschließlich am Fallback-Wert dieser Checkbox-Anzeige.
 - Changelog: 1.20.0 - Checkbox "Logo anzeigen" aus Einstellungen > Anzeigen/Darstellung der einzelnen Ligen entfernt (Beitrag: Nutzeranfrage) - jetzt global unter Einstellungen > Optionen > Anzeigen/Darstellung.
@@ -745,6 +747,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## frontend/data_liga.php
 
+- Changelog: 3.11.0 - Wrapper-Funktionen um die neuen Target-Parameter erweitert. Dabei bemerkt und mitbehoben: der renderPartieRow()-Wrapper war seit linkHomepage/linkBerichte/dateFormat nie nachgezogen worden und reichte bis eben nur die ersten fünf Parameter durch - ein externer Aufruf dieser globalen Funktion hätte diese drei Funktionen stets deaktiviert bekommen, unabhängig vom Aufrufer.
 - Changelog: 3.10.0 - Wrapper-Funktionen partieZeitDisplay()/renderResultsTable() um den neuen $dateFormat-Parameter erweitert (reine Durchreichung an LigaService).
 - Changelog: 3.9.0 - Wrapper-Funktionen renderTeamStatBox()/renderOverallStatsBlock() um den neuen $toreLabel-Parameter erweitert (reine Durchreichung an LigaService, siehe RenderViewsTrait.php 1.35.0).
 - Changelog: 3.8.0 - Neue globale Wrapper-Funktion showTeamLogos($opts) (Durchreichung an LigaService::showTeamLogos()).
@@ -929,6 +932,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/de.php
 
+- Changelog: 1.55.0 - Neue Schlüssel ls_opt_target_blank/ls_opt_target_self.
 - Changelog: 1.54.0 - Neuer Schlüssel wartung_error_not_native_backup.
 - Changelog: 1.53.0 - Neue Schlüssel settings_label_show_team_logos/settings_hint_show_team_logos. Der Schlüssel ls_label_show_logos wird nicht mehr verwendet (bewusst nicht entfernt, harmlos).
 - Changelog: 1.52.0 - Neue Schlüssel install_delete_btn/_confirm/_ok/_gone/_failed (Löschen-Button für install.php).
@@ -1045,6 +1049,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/en.php
 
+- Changelog: 1.54.0 - New keys ls_opt_target_blank/ls_opt_target_self.
 - Changelog: 1.53.0 - New key wartung_error_not_native_backup.
 - Changelog: 1.52.0 - New keys settings_label_show_team_logos/settings_hint_show_team_logos. Key ls_label_show_logos is no longer used (intentionally left in place, harmless).
 - Changelog: 1.51.0 - New keys install_delete_btn/_confirm/_ok/_gone/_failed (delete button for install.php).
@@ -1341,6 +1346,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## liga.php
 
+- Changelog: 3.28.0 - Liest die neuen Einstellungen urlT_target/urlB_target und reicht sie an beide renderResultsTable()-Aufrufstellen durch.
 - Changelog: 3.27.0 - KRITISCHER Bugfix ("d.m.Y ohne Uhrzeit eingestellt, Ausgabe trotzdem mit Uhrzeit") - die Liga-Einstellung "Format der Anstoßtermine" (DatF) wurde bisher an keiner Stelle im Frontend gelesen, analog zu den Bugfixes bei ShowLogos/urlT/urlB in derselben Datei. Neue Variable $datumsFormat aus getLigaOptions() gelesen und an beide renderResultsTable()-Aufrufstellen durchgereicht.
 - Changelog: 3.26.0 - Standardwert für ShowSpielfrei (Fallback ohne gespeicherten Wert) auf deaktiviert geändert - siehe admin/view_liga_settings.php 1.21.0 für den vollständigen Hintergrund.
 - Changelog: 3.25.0 - $showLogos wird jetzt über showTeamLogos($opts) ermittelt (globale Einstellung statt Liga-Option ShowLogos).
@@ -1462,6 +1468,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/RenderViewsTrait.php
 
+- Changelog: 1.37.0 - renderPartieRow()/renderResultsTable() bekommen zwei neue Parameter $homepageTarget/$berichtTarget, nutzen TeamFormattingTrait::linkTargetAttr() für den Spielbericht-Link (siehe TeamFormattingTrait.php 1.7.0).
 - Changelog: 1.36.0 - renderPartieRow()/renderResultsTable()/renderTeamScheduleView() bekommen/nutzen jetzt einen $dateFormat-Parameter und reichen ihn an partieZeitDisplay() durch (siehe TeamFormattingTrait.php 1.6.0) - setzt damit tatsächlich die Liga-Einstellung DatF um, die zuvor an keiner Stelle gelesen wurde.
 - Changelog: 1.35.0 - Fortsetzung der nameTor-Korrektur aus 1.33.0/1.34.0 - galt bisher nur für die Tabellenansicht, die Ligastatistik-Seite zeigte an sechs Stellen weiterhin "Tore"/"Tore/Spiel"/"Tore ges."/"Heim-Tore"/"Auswärts-Tore"/"Die meisten Tore" fest. Neue Hilfsfunktion substituteToreWord() ersetzt das Wort "Tore" in einem übersetzten Label durch den liga-eigenen Ersatztext (nameTor) - funktioniert für jedes Label, das "Tore" als eigenständiges Wort enthält, ohne jede Stelle einzeln per eigenem Lang-Key nachzupflegen. renderTeamStatBox()/renderOverallStatsBlock() bekommen dafür einen neuen optionalen Parameter $toreLabel, renderLigastatistikView() ermittelt ihn einmal und reicht ihn an alle vier Aufrufstellen durch.
 - Changelog: 1.34.0 - Fortsetzung der ColTore/ColPkt-Korrektur (1.33.0): renderStrafHinweis() bekommt jetzt denselben namePkt-Ersatztext für den "+N Pkt."-Tooltip-Teil bei manuellen Punktkorrekturen übergeben, an beiden Aufrufstellen (reguläre Tabelle UND die sportartspezifische Tabelle für Volleyball & Co. in renderDynamicStandingsTable()). Die Label-Ermittlung (colToreLabel/colPktLabel) wurde dafür vor die Zeilen-Schleife gezogen, die sie jetzt ebenfalls benötigt.
@@ -1543,6 +1550,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/TeamFormattingTrait.php
 
+- Changelog: 1.7.0 - partieTeamNameWithLogo()/partieTeamNameWithLogoReversed() bekommen einen neuen Parameter $linkTarget ('_blank'/'_self'). Neue zentrale Hilfsfunktion linkTargetAttr() baut das target-/rel-Attribut-Fragment - gemeinsam genutzt mit dem Spielbericht-Link in RenderViewsTrait::renderPartieRow().
 - Changelog: 1.6.0 - KRITISCHER Bugfix ("d.m.Y ohne Uhrzeit in den Einstellungen eingestellt, Ausgabe trotzdem mit Uhrzeit") - partieZeitDisplay() hatte das Anzeigeformat fest auf "d.m.Y H:i" verdrahtet und die Liga-Einstellung "Format der Anstoßtermine" (DatF) nie gelesen. Neuer optionaler Parameter $dateFormat (Default weiterhin "d.m.Y H:i" für volle Rückwärtskompatibilität ohne explizite Angabe).
 - Changelog: 1.5.0 - Neue Funktion showTeamLogos($opts): zentrale Entscheidung, ob Mannschaftslogos angezeigt werden. Liest die neue globale Admin-Einstellung "show_team_logos"; solange die noch nie gespeichert wurde, gilt rückwärtskompatibel weiterhin die alte Liga-Option ShowLogos - beim Update ändert sich also nichts, bis die globale Einstellung zum ersten Mal gesetzt wird.
 - Changelog: 1.4.0 - partieTeamNameWithLogo()/partieTeamNameWithLogoReversed() bekommen einen neuen Parameter $linkHomepage: verlinkt den Teamnamen zur in teams_global.url hinterlegten Homepage, wenn aktiv UND eine gültige http(s)-URL hinterlegt ist (neue private Hilfsfunktion safeHomepageUrl() - verhindert ein gespeichertes "javascript:..."-Pseudo-Protokoll als klickbaren Link). Setzt den Bugfix aus SpieltagRepositoryTrait.php 1.8.0 um - die Liga-Einstellung "Mannschafts-Homepages verlinken" (urlT) wurde bis dahin an keiner Stelle im Frontend überhaupt ausgewertet.

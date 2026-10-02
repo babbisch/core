@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/RenderViewsTrait.php
- * Fileversion: 1.38.0
+ * Fileversion: 1.39.0
  *
  * PHP version 8.2
  *
@@ -1022,7 +1022,7 @@ trait RenderViewsTrait
             // Logo (kein Kürzel-Text mehr) – sonst wie bisher das Kürzel.
             $kurz = $t['kurz'] ?? '';
             $headerLabel = $showLogos
-                ? self::renderTeamLogoImg((int)$t['id'], true)
+                ? self::renderTeamLogoImg((int)$t['id'], true, $t['name'])
                 : h($kurz !== '' ? $kurz : $t['name']);
             $headerCells .= renderPartial('kreuz_header_cell', [
                 'Label'       => $headerLabel,

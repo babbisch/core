@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/TeamFormattingTrait.php
- * Fileversion: 1.9.0
+ * Fileversion: 1.10.0
  *
  * PHP version 8.2
  *
@@ -106,14 +106,21 @@ trait TeamFormattingTrait
      * ist) vor einem Teamnamen – nur wenn die Liga-Einstellung "Logo anzeigen"
      * (ShowLogos) aktiv ist, sonst leerer String. $teamId <= 0 (z.B. Freilos/
      * Label-only-Partien ohne echtes Team) liefert ebenfalls nichts.
+     *
+     * $title - z.B. der volle Teamname, wenn das Logo OHNE begleitenden Text
+     * steht (z.B. die Kreuztabellen-Kopfzeile) und die Mannschaft sonst nur
+     * durch das Bild erkennbar wäre. Füllt sowohl title (Tooltip beim Hovern)
+     * als auch alt (Bildbeschreibung, z.B. für Screenreader) - leer (Standard)
+     * bedeutet unverändertes bisheriges Verhalten (alt="").
      */
-    public static function renderTeamLogoImg(int $teamId, bool $showLogos) : string
+    public static function renderTeamLogoImg(int $teamId, bool $showLogos, string $title = '') : string
     {
         if (!$showLogos || $teamId <= 0) {
             return '';
         }
         $path = self::findTeamLogoPathFrontend($teamId) ?? 'assets/img/nopic-team.svg';
-        return '<img src="' . h($path) . '" alt="" class="team-logo-inline">';
+        $titleAttr = $title !== '' ? ' title="' . h($title) . '"' : '';
+        return '<img src="' . h($path) . '" alt="' . h($title) . '"' . $titleAttr . ' class="team-logo-inline">';
     }
     /**
      * Wie renderTeamLogoImg(), aber in einen <span> mit fester Breite verpackt
@@ -124,9 +131,9 @@ trait TeamFormattingTrait
      * weiterhin einfach '' zurück (kein leerer Wrapper, kein verschwendeter
      * Platz in Tabellen ohne Logos).
      */
-    public static function renderTeamLogoImgWrapped(int $teamId, bool $showLogos) : string
+    public static function renderTeamLogoImgWrapped(int $teamId, bool $showLogos, string $title = '') : string
     {
-        $img = self::renderTeamLogoImg($teamId, $showLogos);
+        $img = self::renderTeamLogoImg($teamId, $showLogos, $title);
         return $img !== '' ? '<span class="st-team-logo-wrap">' . $img . '</span>' : '';
     }
     /**

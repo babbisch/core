@@ -749,6 +749,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## frontend/data_liga.php
 
+- Changelog: 3.12.0 - Wrapper-Funktionen renderTeamLogoImg()/renderTeamLogoImgWrapped() um den neuen $title-Parameter erweitert.
 - Changelog: 3.11.0 - Wrapper-Funktionen um die neuen Target-Parameter erweitert. Dabei bemerkt und mitbehoben: der renderPartieRow()-Wrapper war seit linkHomepage/linkBerichte/dateFormat nie nachgezogen worden und reichte bis eben nur die ersten fünf Parameter durch - ein externer Aufruf dieser globalen Funktion hätte diese drei Funktionen stets deaktiviert bekommen, unabhängig vom Aufrufer.
 - Changelog: 3.10.0 - Wrapper-Funktionen partieZeitDisplay()/renderResultsTable() um den neuen $dateFormat-Parameter erweitert (reine Durchreichung an LigaService).
 - Changelog: 3.9.0 - Wrapper-Funktionen renderTeamStatBox()/renderOverallStatsBlock() um den neuen $toreLabel-Parameter erweitert (reine Durchreichung an LigaService, siehe RenderViewsTrait.php 1.35.0).
@@ -1477,6 +1478,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/RenderViewsTrait.php
 
+- Changelog: 1.39.0 - Die Kreuztabellen-Kopfzeile übergibt jetzt den vollen Teamnamen als Titel an renderTeamLogoImg() (siehe TeamFormattingTrait.php 1.10.0) - zeigt den Mannschaftsnamen als Tooltip beim Hovern über das Wappen, da dort sonst kein begleitender Text sichtbar ist.
 - Changelog: 1.38.0 - KRITISCHER Bugfix (gemeldet: "Hin-/Rückrundentabellen" in den Liga-Einstellungen deaktiviert, Reiter erscheinen im Frontend trotzdem) - die beiden Einstellungen tableHeimAusw/tableHinRueck wurden zwar überall sonst korrekt behandelt (gespeichert, exportiert, importiert, Standardwerte in templates.php), aber beim Rendern der Tabellen-Navigation (renderStandingsModeNav()) nie gelesen - betraf auch "Heim-/Auswärtstabellen", fiel dort nur nicht auf, da die Einstellung zufällig aktiv war. $validModes in renderStandingsTable() jetzt ebenfalls eingeschränkt - verhindert zusätzlich den Zugriff über einen direkt eingegebenen/geteilten Link mit &table=hin, wenn die Einstellung deaktiviert ist. Betrifft beide Tabellen-Rendering-Pfade (reguläre Tabelle und die sportartspezifische Tabelle für Volleyball & Co.).
 - Changelog: 1.37.0 - renderPartieRow()/renderResultsTable() bekommen zwei neue Parameter $homepageTarget/$berichtTarget, nutzen TeamFormattingTrait::linkTargetAttr() für den Spielbericht-Link (siehe TeamFormattingTrait.php 1.7.0).
 - Changelog: 1.36.0 - renderPartieRow()/renderResultsTable()/renderTeamScheduleView() bekommen/nutzen jetzt einen $dateFormat-Parameter und reichen ihn an partieZeitDisplay() durch (siehe TeamFormattingTrait.php 1.6.0) - setzt damit tatsächlich die Liga-Einstellung DatF um, die zuvor an keiner Stelle gelesen wurde.
@@ -1560,6 +1562,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/TeamFormattingTrait.php
 
+- Changelog: 1.10.0 - renderTeamLogoImg()/renderTeamLogoImgWrapped() bekommen einen neuen optionalen Parameter $title, füllt sowohl title (Tooltip beim Hovern) als auch alt (Bildbeschreibung). Leer (Standard) bedeutet unverändertes bisheriges Verhalten.
 - Changelog: 1.9.0 - linkTargetAttr() unterstützt jetzt auch '_top' - wie bei '_self' kein rel="noopener" nötig, da kein neuer Browsing-Context geöffnet wird.
 - Changelog: 1.8.0 - partieZeitDisplay() übersetzt Wochentags-/Monatsnamen im formatierten Datum jetzt in die aktuelle Seitensprache (neue Funktion localizeDateOutput()). PHP date()/DateTime::format() geben "l"/"D"/"F"/"M" immer auf Englisch aus, unabhängig von der Seitensprache - ersetzt gezielt den für das jeweilige Datum berechneten englischen Wert durch die Übersetzung aus den vorhandenen liga_weekday_*/liga_month_*-Schlüsseln, robust gegenüber beliebigen Formatstring-Kombinationen. Bei Englisch als Seitensprache bleibt die Ausgabe unverändert.
 - Changelog: 1.7.0 - partieTeamNameWithLogo()/partieTeamNameWithLogoReversed() bekommen einen neuen Parameter $linkTarget ('_blank'/'_self'). Neue zentrale Hilfsfunktion linkTargetAttr() baut das target-/rel-Attribut-Fragment - gemeinsam genutzt mit dem Spielbericht-Link in RenderViewsTrait::renderPartieRow().

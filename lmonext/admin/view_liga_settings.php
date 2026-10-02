@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: view_liga_settings.php
- * Fileversion: 1.23.0
+ * Fileversion: 1.24.0
  *
  * PHP version 8.2
  *
@@ -568,6 +568,7 @@ if ($tab === 'grundwerte') { ?>
                        border-radius:var(--radius);padding:4px 8px;font-size:.82rem">
                   <option value="blank"<?= $o('urlT_target','blank')==='blank'?' selected':'' ?>><?= h(t('ls_opt_target_blank')) ?></option>
                   <option value="self"<?= $o('urlT_target','blank')==='self'?' selected':'' ?>><?= h(t('ls_opt_target_self')) ?></option>
+                  <option value="top"<?= $o('urlT_target','blank')==='top'?' selected':'' ?>><?= h(t('ls_opt_target_top')) ?></option>
                 </select>
               </td>
             </tr>
@@ -579,6 +580,7 @@ if ($tab === 'grundwerte') { ?>
                        border-radius:var(--radius);padding:4px 8px;font-size:.82rem">
                   <option value="blank"<?= $o('urlB_target','blank')==='blank'?' selected':'' ?>><?= h(t('ls_opt_target_blank')) ?></option>
                   <option value="self"<?= $o('urlB_target','blank')==='self'?' selected':'' ?>><?= h(t('ls_opt_target_self')) ?></option>
+                  <option value="top"<?= $o('urlB_target','blank')==='top'?' selected':'' ?>><?= h(t('ls_opt_target_top')) ?></option>
                 </select>
               </td>
             </tr>

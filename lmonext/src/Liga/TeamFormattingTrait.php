@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/TeamFormattingTrait.php
- * Fileversion: 1.8.0
+ * Fileversion: 1.9.0
  *
  * PHP version 8.2
  *
@@ -209,7 +209,10 @@ trait TeamFormattingTrait
      */
     public static function linkTargetAttr(string $linkTarget) : string
     {
-        return $linkTarget === '_self' ? '' : ' target="_blank" rel="noopener"';
+        if ($linkTarget === '_self' || $linkTarget === '_top') {
+            return $linkTarget === '_top' ? ' target="_top"' : '';
+        }
+        return ' target="_blank" rel="noopener"';
     }
     /**
      * Datum/Uhrzeit einer einzelnen Partie: eigene Zeit falls gesetzt, sonst der

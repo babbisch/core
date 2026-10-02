@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: liga.php
- * Fileversion: 3.28.0
+ * Fileversion: 3.29.0
  *
  * PHP version 8.2
  *
@@ -95,8 +95,13 @@ $opts         = getLigaOptions($ligaId);
 $flags        = getLigaViewFlags($opts);
 $showLogos    = showTeamLogos($opts);$linkTeamHomepages = ($opts['urlT'] ?? '0') === '1';
 $linkSpielberichte  = ($opts['urlB'] ?? '0') === '1';
-$homepageTarget = ($opts['urlT_target'] ?? 'blank') === 'self' ? '_self' : '_blank';
-$berichtTarget  = ($opts['urlB_target'] ?? 'blank') === 'self' ? '_self' : '_blank';
+$resolveLinkTarget = static fn(string $saved) : string => match ($saved) {
+    'self' => '_self',
+    'top'  => '_top',
+    default => '_blank',
+};
+$homepageTarget = $resolveLinkTarget((string)($opts['urlT_target'] ?? 'blank'));
+$berichtTarget  = $resolveLinkTarget((string)($opts['urlB_target'] ?? 'blank'));
 $datumsFormat = (string)($opts['DatF'] ?? 'd.m.Y H:i');
 $showSpielfrei = ($opts['ShowSpielfrei'] ?? '0') === '1';
 // Globale Einstellung (Admin → Einstellungen → Besucherbereich), gilt für

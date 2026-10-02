@@ -389,6 +389,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/handler_settings.php
 
+- Changelog: 1.19.0 - Akzeptiert jetzt auch den Wert "top" bei urlT_target/urlB_target, gegen eine Whitelist validiert.
 - Changelog: 1.18.0 - Speichert die neuen Einstellungen urlT_target/urlB_target (Werte "blank"/"self"), siehe admin/view_liga_settings.php 1.23.0.
 - Changelog: 1.17.0 - Sportart-Validierung beim Speichern der Liga-Einstellungen nutzt jetzt dynamisch array_keys(SportRegistry::all()) statt einer festen Liste - siehe admin/handler_import_export.php 1.14.0 für den vollständigen Hintergrund.
 - Changelog: 1.16.0 - Liga-Einstellungen speichern die Option ShowLogos nicht mehr (ersetzt durch die globale Einstellung "Mannschaftslogos anzeigen?"). Bereits gespeicherte Werte bleiben unangetastet und dienen nur noch als Rückfall, solange die globale Einstellung nie gesetzt wurde.
@@ -544,6 +545,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/view_liga_settings.php
 
+- Changelog: 1.24.0 - Beitrag: Nutzeranfrage - dritte Option "Im obersten Fenster öffnen (aus iframes ausbrechen)" (target="_top") neben den beiden bestehenden bei der Linkziel-Auswahl für Mannschafts-Homepages/Spielberichte.
 - Changelog: 1.23.0 - Beitrag: Nutzeranfrage - neue Auswahl "Neues Fenster"/"Gleiches Fenster" neben "Mannschafts-Homepages verlinken" und "Spielberichte verlinken" (urlT_target/urlB_target), jeweils separat wählbar.
 - Changelog: 1.22.0 - Beitrag: Nutzeranfrage - "Kegeln" erscheint jetzt automatisch in der Sportart-Auswahl (nutzt bereits SportRegistry::all(), keine eigene Änderung an der Dropdown-Liste nötig). Nebenbei: die "keine Unentschieden"-Anzeige war bisher an einer festen Liste ['football','handball'] festgemacht, die bei jeder neuen Sportart hätte erneut gepflegt werden müssen - jetzt dynamisch aus SportProfile::supportsDraws() aller registrierten Sportarten gebaut (auch der JavaScript-Teil beim Umschalten des Dropdowns), bleibt dadurch automatisch korrekt für künftige Sportarten.
 - Changelog: 1.21.0 - Beitrag: Nutzeranfrage - Standardwert für "Spielfrei anzeigen" (ShowSpielfrei) auf deaktiviert geändert. Betrifft Ligen ohne explizit gespeicherten Wert - weder "Liga erstellen" noch der .l98-Import legen dafür eine eigene liga_options-Zeile an, beide hingen bisher ausschließlich am Fallback-Wert dieser Checkbox-Anzeige.
@@ -932,6 +934,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/de.php
 
+- Changelog: 1.57.0 - Neuer Schlüssel ls_opt_target_top.
+- Changelog: 1.56.0 - Beschriftung der Linkziel-Auswahl (urlT_target/urlB_target) von "Neues Fenster"/"Gleiches Fenster" zu "In neuem Tab öffnen"/"Im gleichen Tab öffnen" geändert - zeitgemäßer, da Browser heute standardmäßig Tabs statt eigener Fenster öffnen.
 - Changelog: 1.55.0 - Neue Schlüssel ls_opt_target_blank/ls_opt_target_self.
 - Changelog: 1.54.0 - Neuer Schlüssel wartung_error_not_native_backup.
 - Changelog: 1.53.0 - Neue Schlüssel settings_label_show_team_logos/settings_hint_show_team_logos. Der Schlüssel ls_label_show_logos wird nicht mehr verwendet (bewusst nicht entfernt, harmlos).
@@ -1049,6 +1053,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/en.php
 
+- Changelog: 1.56.0 - New key ls_opt_target_top.
+- Changelog: 1.55.0 - Wording of the link-target selection changed from "New window"/"Same window" to "Open in new tab"/"Open in same tab" - see lang/admin/de.php 1.56.0.
 - Changelog: 1.54.0 - New keys ls_opt_target_blank/ls_opt_target_self.
 - Changelog: 1.53.0 - New key wartung_error_not_native_backup.
 - Changelog: 1.52.0 - New keys settings_label_show_team_logos/settings_hint_show_team_logos. Key ls_label_show_logos is no longer used (intentionally left in place, harmless).
@@ -1348,6 +1354,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## liga.php
 
+- Changelog: 3.29.0 - Neue zentrale Zuordnung (match-Ausdruck) von gespeichertem Wert ("blank"/"self"/"top") zum tatsächlichen HTML-target-Attribut, inkl. des neuen "top" (target="_top").
 - Changelog: 3.28.0 - Liest die neuen Einstellungen urlT_target/urlB_target und reicht sie an beide renderResultsTable()-Aufrufstellen durch.
 - Changelog: 3.27.0 - KRITISCHER Bugfix ("d.m.Y ohne Uhrzeit eingestellt, Ausgabe trotzdem mit Uhrzeit") - die Liga-Einstellung "Format der Anstoßtermine" (DatF) wurde bisher an keiner Stelle im Frontend gelesen, analog zu den Bugfixes bei ShowLogos/urlT/urlB in derselben Datei. Neue Variable $datumsFormat aus getLigaOptions() gelesen und an beide renderResultsTable()-Aufrufstellen durchgereicht.
 - Changelog: 3.26.0 - Standardwert für ShowSpielfrei (Fallback ohne gespeicherten Wert) auf deaktiviert geändert - siehe admin/view_liga_settings.php 1.21.0 für den vollständigen Hintergrund.
@@ -1470,6 +1477,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/RenderViewsTrait.php
 
+- Changelog: 1.38.0 - KRITISCHER Bugfix (gemeldet: "Hin-/Rückrundentabellen" in den Liga-Einstellungen deaktiviert, Reiter erscheinen im Frontend trotzdem) - die beiden Einstellungen tableHeimAusw/tableHinRueck wurden zwar überall sonst korrekt behandelt (gespeichert, exportiert, importiert, Standardwerte in templates.php), aber beim Rendern der Tabellen-Navigation (renderStandingsModeNav()) nie gelesen - betraf auch "Heim-/Auswärtstabellen", fiel dort nur nicht auf, da die Einstellung zufällig aktiv war. $validModes in renderStandingsTable() jetzt ebenfalls eingeschränkt - verhindert zusätzlich den Zugriff über einen direkt eingegebenen/geteilten Link mit &table=hin, wenn die Einstellung deaktiviert ist. Betrifft beide Tabellen-Rendering-Pfade (reguläre Tabelle und die sportartspezifische Tabelle für Volleyball & Co.).
 - Changelog: 1.37.0 - renderPartieRow()/renderResultsTable() bekommen zwei neue Parameter $homepageTarget/$berichtTarget, nutzen TeamFormattingTrait::linkTargetAttr() für den Spielbericht-Link (siehe TeamFormattingTrait.php 1.7.0).
 - Changelog: 1.36.0 - renderPartieRow()/renderResultsTable()/renderTeamScheduleView() bekommen/nutzen jetzt einen $dateFormat-Parameter und reichen ihn an partieZeitDisplay() durch (siehe TeamFormattingTrait.php 1.6.0) - setzt damit tatsächlich die Liga-Einstellung DatF um, die zuvor an keiner Stelle gelesen wurde.
 - Changelog: 1.35.0 - Fortsetzung der nameTor-Korrektur aus 1.33.0/1.34.0 - galt bisher nur für die Tabellenansicht, die Ligastatistik-Seite zeigte an sechs Stellen weiterhin "Tore"/"Tore/Spiel"/"Tore ges."/"Heim-Tore"/"Auswärts-Tore"/"Die meisten Tore" fest. Neue Hilfsfunktion substituteToreWord() ersetzt das Wort "Tore" in einem übersetzten Label durch den liga-eigenen Ersatztext (nameTor) - funktioniert für jedes Label, das "Tore" als eigenständiges Wort enthält, ohne jede Stelle einzeln per eigenem Lang-Key nachzupflegen. renderTeamStatBox()/renderOverallStatsBlock() bekommen dafür einen neuen optionalen Parameter $toreLabel, renderLigastatistikView() ermittelt ihn einmal und reicht ihn an alle vier Aufrufstellen durch.
@@ -1552,6 +1560,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/TeamFormattingTrait.php
 
+- Changelog: 1.9.0 - linkTargetAttr() unterstützt jetzt auch '_top' - wie bei '_self' kein rel="noopener" nötig, da kein neuer Browsing-Context geöffnet wird.
 - Changelog: 1.8.0 - partieZeitDisplay() übersetzt Wochentags-/Monatsnamen im formatierten Datum jetzt in die aktuelle Seitensprache (neue Funktion localizeDateOutput()). PHP date()/DateTime::format() geben "l"/"D"/"F"/"M" immer auf Englisch aus, unabhängig von der Seitensprache - ersetzt gezielt den für das jeweilige Datum berechneten englischen Wert durch die Übersetzung aus den vorhandenen liga_weekday_*/liga_month_*-Schlüsseln, robust gegenüber beliebigen Formatstring-Kombinationen. Bei Englisch als Seitensprache bleibt die Ausgabe unverändert.
 - Changelog: 1.7.0 - partieTeamNameWithLogo()/partieTeamNameWithLogoReversed() bekommen einen neuen Parameter $linkTarget ('_blank'/'_self'). Neue zentrale Hilfsfunktion linkTargetAttr() baut das target-/rel-Attribut-Fragment - gemeinsam genutzt mit dem Spielbericht-Link in RenderViewsTrait::renderPartieRow().
 - Changelog: 1.6.0 - KRITISCHER Bugfix ("d.m.Y ohne Uhrzeit in den Einstellungen eingestellt, Ausgabe trotzdem mit Uhrzeit") - partieZeitDisplay() hatte das Anzeigeformat fest auf "d.m.Y H:i" verdrahtet und die Liga-Einstellung "Format der Anstoßtermine" (DatF) nie gelesen. Neuer optionaler Parameter $dateFormat (Default weiterhin "d.m.Y H:i" für volle Rückwärtskompatibilität ohne explizite Angabe).

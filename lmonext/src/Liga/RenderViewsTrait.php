@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/RenderViewsTrait.php
- * Fileversion: 1.37.0
+ * Fileversion: 1.38.0
  *
  * PHP version 8.2
  *
@@ -573,7 +573,22 @@ trait RenderViewsTrait
 
         // Tabellen-Modus: gesamt/heim/gast/hin/rueck (Beitrag: Torsten Hofmann).
         // Wirkt NACH dem Spieltag-Filter oben, siehe Docblock.
-        $validModes = ['gesamt', 'heim', 'gast', 'hin', 'rueck'];
+        //
+        // Bugfix ("Hin-/Rückrundentabellen" in den Liga-Einstellungen
+        // deaktiviert, Reiter erscheinen im Frontend trotzdem"):
+        // die beiden Einstellungen tableHeimAusw/tableHinRueck wurden zwar
+        // überall sonst korrekt behandelt (gespeichert, exportiert,
+        // importiert, Standardwerte in templates.php), aber beim Rendern der
+        // Tabellen-Navigation nie gelesen. $validModes jetzt entsprechend
+        // eingeschränkt - verhindert auch den Zugriff über einen direkt
+        // eingegebenen/geteilten Link mit &table=hin, wenn die Einstellung
+        // deaktiviert ist (sonst liefe nur der sichtbare Reiter leer,
+        // die Tabelle selbst bliebe trotzdem per URL erreichbar).
+        $showHeimAusw = ($opts['tableHeimAusw'] ?? '0') === '1';
+        $showHinRueck = ($opts['tableHinRueck'] ?? '0') === '1';
+        $validModes = ['gesamt'];
+        if ($showHeimAusw) { $validModes[] = 'heim'; $validModes[] = 'gast'; }
+        if ($showHinRueck) { $validModes[] = 'hin'; $validModes[] = 'rueck'; }
         $tableMode  = in_array($tableMode, $validModes, true) ? $tableMode : 'gesamt';
 
         $partienForMode = $partien;
@@ -656,7 +671,7 @@ trait RenderViewsTrait
         }
 
         $spieltagNav = self::renderStandingsSpieltagNav($ligaId, $nr, $maxNr, $tableMode);
-        $modeNav     = self::renderStandingsModeNav($ligaId, $tableMode, $nr, $maxNr);
+        $modeNav     = self::renderStandingsModeNav($ligaId, $tableMode, $nr, $maxNr, $showHeimAusw, $showHinRueck);
 
         return $modeNav . renderPartial('standings_view', [
             'ColPlatz'    => h(tf('liga_standings_col_platz')),
@@ -748,7 +763,12 @@ trait RenderViewsTrait
         }
 
         $spieltagNav = self::renderStandingsSpieltagNav($ligaId, $nr, $maxNr, $tableMode);
-        $modeNav     = self::renderStandingsModeNav($ligaId, $tableMode, $nr, $maxNr);
+        // Siehe Bugfix-Kommentar bei renderStandingsTable() - dieselben
+        // beiden Liga-Einstellungen gelten auch für die sportartspezifische
+        // Tabellendarstellung.
+        $showHeimAusw = ($opts['tableHeimAusw'] ?? '0') === '1';
+        $showHinRueck = ($opts['tableHinRueck'] ?? '0') === '1';
+        $modeNav     = self::renderStandingsModeNav($ligaId, $tableMode, $nr, $maxNr, $showHeimAusw, $showHinRueck);
 
         return $modeNav . '<div class="card">' . $spieltagNav
              . '<div class="table-scroll"><table class="standings-table"><thead><tr>' . $theadHtml . '</tr></thead><tbody>' . $rowsHtml . '</tbody></table></div>'
@@ -820,15 +840,17 @@ trait RenderViewsTrait
         return number_format($a / $b, 3, ',', '');
     }
 
-    private static function renderStandingsModeNav(int $ligaId, string $activeMode, int $nr, int $maxNr) : string
+    private static function renderStandingsModeNav(int $ligaId, string $activeMode, int $nr, int $maxNr, bool $showHeimAusw = true, bool $showHinRueck = true) : string
     {
-        $modes = [
-            'gesamt' => 'liga_standings_nav_gesamt',
-            'heim'   => 'liga_standings_nav_heim',
-            'gast'   => 'liga_standings_nav_gast',
-            'hin'    => 'liga_standings_nav_hin',
-            'rueck'  => 'liga_standings_nav_rueck',
-        ];
+        $modes = ['gesamt' => 'liga_standings_nav_gesamt'];
+        if ($showHeimAusw) {
+            $modes['heim'] = 'liga_standings_nav_heim';
+            $modes['gast'] = 'liga_standings_nav_gast';
+        }
+        if ($showHinRueck) {
+            $modes['hin']   = 'liga_standings_nav_hin';
+            $modes['rueck'] = 'liga_standings_nav_rueck';
+        }
         $nrParam = ($nr > 0 && $nr < $maxNr) ? ('&nr=' . $nr) : '';
         $html = '<div class="standings-nav">';
         foreach ($modes as $mode => $langKey) {

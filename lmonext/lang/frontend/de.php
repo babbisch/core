@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: lang/frontend/de.php
- * Fileversion: 1.61.0
+ * Fileversion: 1.62.0
  *
  * PHP version 8.2
  *
@@ -185,6 +185,16 @@ return [
     'liga_weekday_fr' => 'Fr',
     'liga_weekday_sa' => 'Sa',
     'liga_weekday_so' => 'So',
+    // Beitrag: Nutzeranfrage - volle Wochentagsnamen (für date()-Format "l",
+    // z.B. in DatF/"Format der Anstoßtermine" nutzbar), indiziert nach ISO-
+    // Wochentagsnummer (1=Montag..7=Sonntag, siehe DateTime::format('N')).
+    'liga_weekday_full_1' => 'Montag',
+    'liga_weekday_full_2' => 'Dienstag',
+    'liga_weekday_full_3' => 'Mittwoch',
+    'liga_weekday_full_4' => 'Donnerstag',
+    'liga_weekday_full_5' => 'Freitag',
+    'liga_weekday_full_6' => 'Samstag',
+    'liga_weekday_full_7' => 'Sonntag',
     'liga_tab_ergebnisse'    => 'Ergebnisse',
     'liga_tab_spielplaene'   => 'Spielpläne',
     'liga_tab_info'          => 'Info',
@@ -212,6 +222,19 @@ return [
     'liga_month_10' => 'Oktober',
     'liga_month_11' => 'November',
     'liga_month_12' => 'Dezember',
+    // Kurze Monatsnamen (für date()-Format "M"), indiziert nach Monatsnummer.
+    'liga_month_short_1'  => 'Jan',
+    'liga_month_short_2'  => 'Feb',
+    'liga_month_short_3'  => 'Mär',
+    'liga_month_short_4'  => 'Apr',
+    'liga_month_short_5'  => 'Mai',
+    'liga_month_short_6'  => 'Jun',
+    'liga_month_short_7'  => 'Jul',
+    'liga_month_short_8'  => 'Aug',
+    'liga_month_short_9'  => 'Sep',
+    'liga_month_short_10' => 'Okt',
+    'liga_month_short_11' => 'Nov',
+    'liga_month_short_12' => 'Dez',
 
     // ── Wartungsmodus (Beitrag: Torsten Hofmann) ───────────────────────────────
     'maintenance_title'            => 'Wartungsmodus',

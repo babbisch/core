@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/TeamFormattingTrait.php
- * Fileversion: 1.7.0
+ * Fileversion: 1.8.0
  *
  * PHP version 8.2
  *
@@ -240,10 +240,63 @@ trait TeamFormattingTrait
             return '–';
         }
         try {
-            return (new \DateTime($raw))->format($dateFormat);
+            $dt = new \DateTime($raw);
+            return self::localizeDateOutput($dt, $dt->format($dateFormat), $dateFormat);
         } catch (\Throwable) {
             return '–';
         }
+    }
+
+    /**
+     * Ersetzt englische Wochentags-/Monatsnamen im bereits formatierten
+     * Datums-String durch die Übersetzung in der aktuellen Seitensprache
+     * PHP date()/DateTime::format() geben "l" (voller Wochentag),
+     * "D" (kurzer Wochentag), "F" (voller Monat) und "M" (kurzer Monat)
+     * IMMER auf Englisch aus, unabhängig von der gewählten Seitensprache.
+     * date() ist nicht locale-abhängig, anders als das veraltete strftime()).
+     *
+     * Ersetzt gezielt den für DIESES Datum berechneten englischen Wert
+     * (z.B. "Friday") durch die Übersetzung, statt den Format-String selbst
+     * zu interpretieren - robust gegenüber beliebigen Kombinationen von
+     * Formatzeichen und Literaltext. Bei Englisch als Seitensprache bleibt
+     * die PHP-Ausgabe unverändert (keine Übersetzung nötig). Fehlt eine
+     * Übersetzung (z.B. weitere Sprache ohne diese Schlüssel), bleibt die
+     * jeweilige englische Ausgabe als Rückfall unangetastet.
+     */
+    private static function localizeDateOutput(\DateTime $dt, string $formatted, string $dateFormat) : string
+    {
+        if (!function_exists('getCurrentLanguage') || !function_exists('tf')) {
+            return $formatted;
+        }
+        $lang = getCurrentLanguage('frontend');
+        if ($lang === 'en') {
+            return $formatted;
+        }
+        $weekdayNum = (int)$dt->format('N'); // 1=Montag..7=Sonntag
+        $monthNum   = (int)$dt->format('n'); // 1..12
+        $weekdayShortKeys = [1 => 'mo', 2 => 'di', 3 => 'mi', 4 => 'do', 5 => 'fr', 6 => 'sa', 7 => 'so'];
+
+        $replace = static function (string $formatted, string $englishValue, string $translationKey) : string {
+            if ($englishValue === '') { return $formatted; }
+            $translated = tf($translationKey);
+            return ($translated !== '' && $translated !== $translationKey)
+                ? str_replace($englishValue, $translated, $formatted)
+                : $formatted;
+        };
+
+        if (str_contains($dateFormat, 'l')) {
+            $formatted = $replace($formatted, $dt->format('l'), 'liga_weekday_full_' . $weekdayNum);
+        }
+        if (str_contains($dateFormat, 'D')) {
+            $formatted = $replace($formatted, $dt->format('D'), 'liga_weekday_' . $weekdayShortKeys[$weekdayNum]);
+        }
+        if (str_contains($dateFormat, 'F')) {
+            $formatted = $replace($formatted, $dt->format('F'), 'liga_month_' . $monthNum);
+        }
+        if (str_contains($dateFormat, 'M')) {
+            $formatted = $replace($formatted, $dt->format('M'), 'liga_month_short_' . $monthNum);
+        }
+        return $formatted;
     }
     /**
      * Datumsspanne eines Spieltags (frühestes – spätestes Datum unter den Partien,

@@ -1165,6 +1165,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/frontend/de.php
 
+- Changelog: 1.62.0 - Neue Schlüssel liga_weekday_full_1..7 (volle Wochentagsnamen) und liga_month_short_1..12 (kurze Monatsnamen), ergänzen die bereits vorhandenen liga_weekday_mo..so/liga_month_1..12 - siehe TeamFormattingTrait.php 1.8.0.
 - Changelog: 1.61.0 - Neuer Sprachschlüssel liga_tab_karte ("Karte") für den neuen Reiter des team-notizen-Addons.
 - Changelog: 1.58.0 - Neuer Schlüssel liga_gt_footnote_grund für den angehängten Zusatztext in der Grüne-Tisch-Fußnote.
 - Changelog: 1.57.0 - Neue Schlüssel liga_gt_footnote_line_beide und liga_gt_footnote_line_beide_no_real für die Fußnoten-Erklärung der neuen "Beide Mannschaften verlieren"-Grüne-Tisch-Entscheidung.
@@ -1250,6 +1251,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/frontend/en.php
 
+- Changelog: 1.62.0 - Neue Schlüssel liga_weekday_full_1..7 und liga_month_short_1..12, siehe lang/frontend/de.php 1.62.0.
 - Changelog: 1.61.0 - New language key liga_tab_karte ("Map") for the new tab of the team-notizen add-on.
 - Changelog: 1.58.0 - New key liga_gt_footnote_grund for the appended additional text in the GT footnote.
 - Changelog: 1.57.0 - New keys liga_gt_footnote_line_beide and liga_gt_footnote_line_beide_no_real for the footnote explanation of the new "both teams lose" GT decision.
@@ -1550,6 +1552,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/TeamFormattingTrait.php
 
+- Changelog: 1.8.0 - partieZeitDisplay() übersetzt Wochentags-/Monatsnamen im formatierten Datum jetzt in die aktuelle Seitensprache (neue Funktion localizeDateOutput()). PHP date()/DateTime::format() geben "l"/"D"/"F"/"M" immer auf Englisch aus, unabhängig von der Seitensprache - ersetzt gezielt den für das jeweilige Datum berechneten englischen Wert durch die Übersetzung aus den vorhandenen liga_weekday_*/liga_month_*-Schlüsseln, robust gegenüber beliebigen Formatstring-Kombinationen. Bei Englisch als Seitensprache bleibt die Ausgabe unverändert.
 - Changelog: 1.7.0 - partieTeamNameWithLogo()/partieTeamNameWithLogoReversed() bekommen einen neuen Parameter $linkTarget ('_blank'/'_self'). Neue zentrale Hilfsfunktion linkTargetAttr() baut das target-/rel-Attribut-Fragment - gemeinsam genutzt mit dem Spielbericht-Link in RenderViewsTrait::renderPartieRow().
 - Changelog: 1.6.0 - KRITISCHER Bugfix ("d.m.Y ohne Uhrzeit in den Einstellungen eingestellt, Ausgabe trotzdem mit Uhrzeit") - partieZeitDisplay() hatte das Anzeigeformat fest auf "d.m.Y H:i" verdrahtet und die Liga-Einstellung "Format der Anstoßtermine" (DatF) nie gelesen. Neuer optionaler Parameter $dateFormat (Default weiterhin "d.m.Y H:i" für volle Rückwärtskompatibilität ohne explizite Angabe).
 - Changelog: 1.5.0 - Neue Funktion showTeamLogos($opts): zentrale Entscheidung, ob Mannschaftslogos angezeigt werden. Liest die neue globale Admin-Einstellung "show_team_logos"; solange die noch nie gespeichert wurde, gilt rückwärtskompatibel weiterhin die alte Liga-Option ShowLogos - beim Update ändert sich also nichts, bis die globale Einstellung zum ersten Mal gesetzt wird.

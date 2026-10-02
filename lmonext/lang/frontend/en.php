@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: lang/frontend/en.php
- * Fileversion: 1.61.0
+ * Fileversion: 1.62.0
  *
  * PHP version 8.2
  *
@@ -183,6 +183,13 @@ return [
     'liga_weekday_fr' => 'Fri',
     'liga_weekday_sa' => 'Sat',
     'liga_weekday_so' => 'Sun',
+    'liga_weekday_full_1' => 'Monday',
+    'liga_weekday_full_2' => 'Tuesday',
+    'liga_weekday_full_3' => 'Wednesday',
+    'liga_weekday_full_4' => 'Thursday',
+    'liga_weekday_full_5' => 'Friday',
+    'liga_weekday_full_6' => 'Saturday',
+    'liga_weekday_full_7' => 'Sunday',
     'liga_tab_ergebnisse'    => 'Results',
     'liga_tab_spielplaene'   => 'Bracket',
     'liga_tab_info'          => 'Info',
@@ -210,6 +217,18 @@ return [
     'liga_month_10' => 'October',
     'liga_month_11' => 'November',
     'liga_month_12' => 'December',
+    'liga_month_short_1'  => 'Jan',
+    'liga_month_short_2'  => 'Feb',
+    'liga_month_short_3'  => 'Mar',
+    'liga_month_short_4'  => 'Apr',
+    'liga_month_short_5'  => 'May',
+    'liga_month_short_6'  => 'Jun',
+    'liga_month_short_7'  => 'Jul',
+    'liga_month_short_8'  => 'Aug',
+    'liga_month_short_9'  => 'Sep',
+    'liga_month_short_10' => 'Oct',
+    'liga_month_short_11' => 'Nov',
+    'liga_month_short_12' => 'Dec',
 
     // ── Player stats (visitor view) ──────────────────────────────────────────
 

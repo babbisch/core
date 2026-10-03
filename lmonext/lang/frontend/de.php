@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: lang/frontend/de.php
- * Fileversion: 1.62.0
+ * Fileversion: 1.63.0
  *
  * PHP version 8.2
  *
@@ -143,6 +143,7 @@ return [
     'liga_standings_col_u'        => 'U',
     'liga_standings_col_n'        => 'N',
     'liga_standings_col_tore'     => 'Tore',
+    'liga_freilos_label'          => 'Freilos',
     'liga_standings_col_diff'     => 'Diff',
     'liga_standings_col_pkt'      => 'Pkt',
     'liga_standings_straf_erzielt'   => 'Tore',

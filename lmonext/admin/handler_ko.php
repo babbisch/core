@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: handler_ko.php
- * Fileversion: 1.3.2
+ * Fileversion: 1.4.0
  *
  * PHP version 8.2
  *
@@ -14,37 +14,69 @@
  */
 
 // ── KO-Team-Picker: echtes Team oder Platzhalter-Label ───────────────────────
+/**
+ * Drei Zustände (Beitrag: Nutzeranfrage - bei einem größer gewählten
+ * KO-Bracket als die tatsächliche Teilnehmerzahl, z.B. 16er-Bracket für 13
+ * Teams, braucht man für die 3 übrigen Freilos-Plätze kein Dummy-Team in
+ * teams_global mehr):
+ *   - Team:        $teamId > 0
+ *   - Platzhalter: $teamId === 0, $label ist freier Text (z.B. "Sieger
+ *                  Achtelfinale 1") - noch unbekannter künftiger Gegner.
+ *   - Freilos:     $teamId === 0, $label === KO_FREILOS_MARKER - diese
+ *                  Seite hat BEWUSST keinen Gegner, die andere Seite rückt
+ *                  automatisch vor (siehe data_loader.php: prevWinners-
+ *                  Berechnung für die Team-Auswahl der nächsten Runde).
+ */
 function renderKoTeamPicker(int $pIdx, string $slot, int $teamId, string $label, array $allTeams): string {
-    $isPlaceholder = ($teamId === 0);
+    $isFreilos     = ($teamId === 0 && $label === KO_FREILOS_MARKER);
+    $isPlaceholder = ($teamId === 0 && !$isFreilos);
     $selStyle = 'flex:1;min-width:140px;background:var(--bg);border:1px solid var(--border);'
               . 'color:var(--text);border-radius:var(--radius);padding:5px 8px;font-size:.85rem';
     $inpStyle = 'flex:1;min-width:140px;background:var(--bg);border:1px solid var(--yellow);'
               . 'color:var(--text);border-radius:var(--radius);padding:5px 8px;font-size:.85rem';
+    $freilosStyle = 'flex:1;min-width:140px;background:var(--bg);border:1px dashed var(--muted);'
+                   . 'color:var(--muted);border-radius:var(--radius);padding:5px 8px;font-size:.85rem;'
+                   . 'font-style:italic';
     $toggleStyle = 'background:none;border:1px solid var(--border);color:var(--muted);'
                  . 'border-radius:var(--radius);padding:3px 7px;font-size:.75rem;cursor:pointer;'
                  . 'white-space:nowrap;flex-shrink:0';
 
-    $sel  = '<select name="'.$slot.'_'.$pIdx.'" id="sel-'.$slot.'-'.$pIdx.'"'
-           . ($isPlaceholder ? ' style="'.$selStyle.';display:none"' : ' style="'.$selStyle.'"').'>';
+    $isTeamState = !$isPlaceholder && !$isFreilos;
+
+    $sel  = '<select name="'.($isTeamState ? $slot.'_'.$pIdx : '').'" id="sel-'.$slot.'-'.$pIdx.'"'
+           . ($isTeamState ? ' style="'.$selStyle.'"' : ' style="'.$selStyle.';display:none"').'>';
     $sel .= '<option value="0">'.h(t('sp_option_placeholder')).'</option>';
     foreach ($allTeams as $t) {
         $sel .= '<option value="'.(int)$t['id'].'"'.((int)$t['id']===$teamId?' selected':'').'>'.h($t['name']).'</option>';
     }
     $sel .= '</select>';
 
-    $inp = '<input type="text" name="'.$slot.'_label_'.$pIdx.'" id="lbl-'.$slot.'-'.$pIdx.'"'
-         . ' value="'.h($label).'" placeholder="'.h(t('sp_placeholder_example_winner')).'"'
+    // WICHTIG: $inp trägt den Namen slot_label_pIdx NUR im Platzhalter-
+    // Zustand. Im Freilos-Zustand übernimmt stattdessen das separate
+    // versteckte Feld unten ($hidLabel) diesen Namen - zwei Felder mit
+    // demselben name gleichzeitig im POST wären sonst mehrdeutig
+    // (abhängig von der DOM-Reihenfolge, welcher Wert tatsächlich ankommt).
+    $inp = '<input type="text" name="'.($isPlaceholder ? $slot.'_label_'.$pIdx : '').'" id="lbl-'.$slot.'-'.$pIdx.'"'
+         . ' value="'.($isPlaceholder ? h($label) : '').'" placeholder="'.h(t('sp_placeholder_example_winner')).'"'
          . ($isPlaceholder ? ' style="'.$inpStyle.'"' : ' style="'.$inpStyle.';display:none"').'>';
+
+    // Freilos: nur eine schreibgeschützte Anzeige, kein Freitext nötig -
+    // der eigentliche Wert geht über das versteckte Feld $hidLabel unten.
+    $freilosDisp = '<span id="fr-'.$slot.'-'.$pIdx.'" style="'.$freilosStyle.($isFreilos ? '' : ';display:none').'">'
+                 . h(t('sp_freilos_label')).'</span>';
 
     $btn = '<button type="button" title="'.h(t('sp_tooltip_toggle_team_placeholder')).'" style="'.$toggleStyle.'"'
          . ' onclick="koTogglePicker(\''.h($slot).'\','.$pIdx.')">'
-         . ($isPlaceholder ? h(t('sp_btn_team_short')) : h(t('sp_btn_placeholder_short'))).'</button>';
+         . ($isFreilos ? h(t('sp_btn_team_short')) : ($isPlaceholder ? h(t('sp_btn_freilos_short')) : h(t('sp_btn_placeholder_short')))).'</button>';
 
-    $hid = $isPlaceholder
-        ? '<input type="hidden" name="'.$slot.'_'.$pIdx.'" value="0">'
+    $hid = ($isPlaceholder || $isFreilos)
+        ? '<input type="hidden" name="'.$slot.'_'.$pIdx.'" id="hid-'.$slot.'-'.$pIdx.'" value="0">'
+        : '';
+    $hidLabel = $isFreilos
+        ? '<input type="hidden" name="'.$slot.'_label_'.$pIdx.'" id="lblhid-'.$slot.'-'.$pIdx.'" value="'.h(KO_FREILOS_MARKER).'">'
         : '';
 
-    return $sel.$inp.$btn;
+    return $sel.$inp.$freilosDisp.$btn.$hid.$hidLabel;
 }
 
 /**

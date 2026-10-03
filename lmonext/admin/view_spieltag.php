@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: view_spieltag.php
- * Fileversion: 1.11.0
+ * Fileversion: 1.12.0
  *
  * PHP version 8.2
  *
@@ -343,33 +343,70 @@ $tickerText  = $spieltagData['tickertext'] ?? '';
           exampleWinner:        <?= json_encode(t('sp_placeholder_example_winner')) ?>,
           optionPlaceholder:    <?= json_encode(t('sp_option_placeholder')) ?>,
           placeholderWord:      <?= json_encode(t('sp_placeholder_word')) ?>,
+          freilosShort:         <?= json_encode(t('sp_btn_freilos_short')) ?>,
+          freilosLabel:         <?= json_encode(t('sp_freilos_label')) ?>,
+          freilosMarker:        <?= json_encode(KO_FREILOS_MARKER) ?>,
         };
 
-        // ── Team-Picker: echtes Team ↔ Platzhalter ───────────────────────────
+        // ── Team-Picker: Team → Platzhalter → Freilos → Team (Beitrag:
+        // Nutzeranfrage - Freilos-Plätze in einem größer gewählten KO-
+        // Bracket brauchen kein Dummy-Team in teams_global mehr) ───────────
+        //
+        // WICHTIG: immer zuerst alle Felder, die aktuell den Zielnamen
+        // tragen könnten, auf name='' setzen (clearConflicting), ERST DANACH
+        // den neuen Namen vergeben - sonst entfernt eine spätere Zuweisung
+        // versehentlich den gerade erst gesetzten Namen eines anderen Feldes
+        // (zwei Felder mit demselben name wären im POST sonst mehrdeutig).
         function koTogglePicker(slot, pIdx) {
           const sel = document.getElementById('sel-'+slot+'-'+pIdx);
           const inp = document.getElementById('lbl-'+slot+'-'+pIdx);
-          const btn = inp.nextElementSibling; // Toggle-Button
-          if (sel.style.display === 'none') {
-            // Wechsel zu Dropdown
-            sel.style.display = '';
-            inp.style.display = 'none';
+          const fr  = document.getElementById('fr-'+slot+'-'+pIdx);
+          const btn = fr.nextElementSibling; // Toggle-Button
+          const parent = sel.parentElement;
+
+          const clearConflicting = (name) => {
+            parent.querySelectorAll('[name="'+name+'"]').forEach(el => { el.name = ''; });
+          };
+          const getOrCreateHidden = (name, value) => {
+            clearConflicting(name);
+            let hid = parent.querySelector('#hidjs-'+name.replace(/[^a-zA-Z0-9_]/g, ''));
+            if (!hid) {
+              hid = document.createElement('input');
+              hid.type = 'hidden'; hid.id = 'hidjs-'+name.replace(/[^a-zA-Z0-9_]/g, '');
+              parent.appendChild(hid);
+            }
+            hid.name = name; hid.value = value;
+            return hid;
+          };
+
+          const currentState = sel.style.display === 'none'
+            ? (fr.style.display === 'none' ? 'placeholder' : 'freilos')
+            : 'team';
+
+          if (currentState === 'team') {
+            // Wechsel zu Platzhalter
+            sel.style.display = 'none'; inp.style.display = ''; fr.style.display = 'none';
+            clearConflicting(slot+'_'+pIdx);
+            sel.name = '';
+            inp.name = slot+'_label_'+pIdx;
+            getOrCreateHidden(slot+'_'+pIdx, '0');
+            btn.textContent = i18nSp.freilosShort;
+          } else if (currentState === 'placeholder') {
+            // Wechsel zu Freilos
+            sel.style.display = 'none'; inp.style.display = 'none'; fr.style.display = '';
+            clearConflicting(slot+'_label_'+pIdx);
+            inp.name = '';
+            getOrCreateHidden(slot+'_'+pIdx, '0');
+            getOrCreateHidden(slot+'_label_'+pIdx, i18nSp.freilosMarker);
+            btn.textContent = i18nSp.teamShort;
+          } else {
+            // Wechsel zu Team-Dropdown
+            sel.style.display = ''; inp.style.display = 'none'; fr.style.display = 'none';
+            clearConflicting(slot+'_'+pIdx);
+            clearConflicting(slot+'_label_'+pIdx);
             sel.name = slot+'_'+pIdx;
             inp.name = slot+'_label_'+pIdx;
             btn.textContent = i18nSp.placeholderShort;
-          } else {
-            // Wechsel zu Platzhalter
-            sel.style.display = 'none';
-            inp.style.display = '';
-            // Versteckter Wert 0 für team_id
-            let hid = sel.parentElement.querySelector('input[type=hidden][name="'+slot+'_'+pIdx+'"]');
-            if (!hid) {
-              hid = document.createElement('input');
-              hid.type = 'hidden'; hid.name = slot+'_'+pIdx; hid.value = '0';
-              sel.parentElement.appendChild(hid);
-            }
-            sel.name = '';  // aus POST rausnehmen
-            btn.textContent = i18nSp.teamShort;
           }
         }
 
@@ -379,7 +416,14 @@ $tickerText  = $spieltagData['tickertext'] ?? '';
           label      = label      || '';
           const selStyle = 'flex:1;min-width:140px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:var(--radius);padding:5px 8px;font-size:.85rem';
           const inpStyle = 'flex:1;min-width:140px;background:var(--bg);border:1px solid var(--yellow,#f59e0b);color:var(--text);border-radius:var(--radius);padding:5px 8px;font-size:.85rem';
+          const frStyle  = 'flex:1;min-width:140px;background:var(--bg);border:1px dashed var(--muted);color:var(--muted);border-radius:var(--radius);padding:5px 8px;font-size:.85rem;font-style:italic';
           const tglStyle = 'background:none;border:1px solid var(--border);color:var(--muted);border-radius:var(--radius);padding:3px 7px;font-size:.75rem;cursor:pointer;white-space:nowrap;flex-shrink:0';
+          // Neue Paarungen starten immer im Team-Zustand (Beitrag:
+          // Nutzeranfrage - 3-Stufen-Toggle Team/Platzhalter/Freilos, siehe
+          // koTogglePicker() für den vollständigen Hintergrund). Die
+          // "fr"-Markierung wird hier nur als (ausgeblendetes) Grundgerüst
+          // mitgerendert, damit koTogglePicker() dieselbe Struktur vorfindet
+          // wie bei den von PHP gerenderten, bestehenden Paarungen.
           const isPlaceholder = selectedId === 0 && label !== '';
 
           let opts = `<option value="0">${i18nSp.optionPlaceholder}</option>`;
@@ -394,6 +438,7 @@ $tickerText  = $spieltagData['tickertext'] ?? '';
 
           return `<select name="${slot}_${pIdx}" id="sel-${slot}-${pIdx}" style="${selStyle};${selDisp}">${opts}</select>`
                + `<input type="text" name="${slot}_label_${pIdx}" id="lbl-${slot}-${pIdx}" value="${label}" placeholder="${i18nSp.exampleWinner}" style="${inpStyle};${inpDisp}">`
+               + `<span id="fr-${slot}-${pIdx}" style="${frStyle};display:none">${i18nSp.freilosLabel}</span>`
                + `<button type="button" style="${tglStyle}" onclick="koTogglePicker('${slot}',${pIdx})">${btnTxt}</button>`
                + hidEl;
         }

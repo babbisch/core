@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: data_loader.php
- * Fileversion: 1.16.0
+ * Fileversion: 1.17.0
  *
  * PHP version 8.2
  *
@@ -177,16 +177,28 @@ if (isLoggedIn()) {
                 $prevStid = $prevST ? (int)$prevST['id'] : null;
 
                 if ($prevStid) {
-                    // Alle Partien der Vorrunde holen (inkl. noch nicht gespielter)
+                    // Alle Partien der Vorrunde holen (inkl. noch nicht gespielter).
+                    // Bugfix (Beitrag: Nutzeranfrage - Freilos-Plätze in einem
+                    // größer gewählten KO-Bracket, z.B. 16er-Bracket für 13
+                    // Teams): vorher wurden Paarungen mit einer NULL-Seite
+                    // (genau das, was ein Freilos ist) komplett aus dieser
+                    // Abfrage ausgeschlossen - das Team mit Freilos verschwand
+                    // dadurch aus der gefilterten Team-Auswahl der nächsten
+                    // Runde. Jetzt zusätzlich: eine Seite echtes Team, die
+                    // andere explizit mit dem Freilos-Marker (KO_FREILOS_MARKER)
+                    // gekennzeichnet.
                     $sPP = $db->prepare(
-                        'SELECT heim_id, gast_id, h_tore, g_tore, spiel_nr
+                        'SELECT heim_id, gast_id, heim_label, gast_label, h_tore, g_tore, spiel_nr
                            FROM '.tbl('liga_partien').'
                           WHERE spieltag_id=?
-                            AND heim_id IS NOT NULL AND gast_id IS NOT NULL
-                            AND heim_id != gast_id
+                            AND (
+                                  (heim_id IS NOT NULL AND gast_id IS NOT NULL AND heim_id != gast_id)
+                               OR (heim_id IS NOT NULL AND gast_id IS NULL AND gast_label = ?)
+                               OR (gast_id IS NOT NULL AND heim_id IS NULL AND heim_label = ?)
+                            )
                           ORDER BY spiel_nr'
                     );
-                    $sPP->execute([$prevStid]);
+                    $sPP->execute([$prevStid, KO_FREILOS_MARKER, KO_FREILOS_MARKER]);
                     $prevPartien = $sPP->fetchAll();
 
                     // Dummy-Team ID ermitteln (soll nie als Sieger gelten)
@@ -208,6 +220,25 @@ if (isLoggedIn()) {
                         $winnerIds = [];
                         $loserIds  = [];
                         foreach ($paarungen as $parts) {
+                            // Freilos-Paarung: eine Seite ist bewusst leer (Marker
+                            // statt echtem Team) - das verbliebene Team rückt
+                            // automatisch vor, unabhängig vom Spielstand (es gibt
+                            // ja gar keinen Gegner, mit dem gespielt werden könnte).
+                            // Reicht, die ERSTE Partie dieser Paarung zu prüfen -
+                            // alle Legs einer Freilos-Paarung haben dieselbe
+                            // Besetzung (siehe handler_ko.php: dieselben
+                            // heim/gast-Werte gelten für jedes Leg $s).
+                            $freilosTeamId = null;
+                            if ((int)$parts[0]['heim_id'] > 0 && $parts[0]['gast_id'] === null && $parts[0]['gast_label'] === KO_FREILOS_MARKER) {
+                                $freilosTeamId = (int)$parts[0]['heim_id'];
+                            } elseif ((int)$parts[0]['gast_id'] > 0 && $parts[0]['heim_id'] === null && $parts[0]['heim_label'] === KO_FREILOS_MARKER) {
+                                $freilosTeamId = (int)$parts[0]['gast_id'];
+                            }
+                            if ($freilosTeamId !== null) {
+                                if ($freilosTeamId !== $dummyId) { $winnerIds[$freilosTeamId] = true; }
+                                continue;
+                            }
+
                             // Prüfen ob alle Spiele dieser Paarung Ergebnisse haben
                             $allPlayed = true;
                             foreach ($parts as $p) {

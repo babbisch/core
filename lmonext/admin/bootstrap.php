@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: bootstrap.php
- * Fileversion: 1.31.1
+ * Fileversion: 1.32.0
  *
  * PHP version 8.2
  *
@@ -1387,6 +1387,12 @@ const KO_MODUS = [
 ];
 // Standard-KO-Modus bei Neu-Erstellung
 const KO_MODUS_DEFAULT = 1;
+
+// KO_FREILOS_MARKER ist in config_loader.php definiert (BUGFIX: lag
+// ursprünglich hier, aber TeamFormattingTrait::partieTeamName() - das
+// diesen Marker übersetzt - läuft auch im Besucherbereich, der
+// admin/bootstrap.php NIE lädt. config_loader.php wird dagegen von BEIDEN
+// Bootstrap-Dateien geladen, siehe dortiger Kommentar).
 
 // Übersetzte Anzeige-Bezeichnung für einen KO-Modus-Wert (KO_MODUS-Keys bleiben
 // stabile interne Werte, nur das Label wird über t() lokalisiert).

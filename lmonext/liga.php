@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: liga.php
- * Fileversion: 3.29.0
+ * Fileversion: 3.29.1
  *
  * PHP version 8.2
  *
@@ -286,10 +286,16 @@ switch ($currentView) {
             $_p['_gt_tore_beide_verlieren'] = $gtToreBeideVerlieren;
         }
         unset($_p);
-        // Reine Leer-Begegnungen (kein Team, kein Label auf beiden Seiten – z.B.
-        // Freilos-Auffüllplätze bei KO-Turnieren) werden nicht angezeigt, siehe
-        // partieIsEmptyPlaceholder().
-        $partien     = array_values(array_filter($partien, static fn(array $p) => !partieIsEmptyPlaceholder($p)));
+        // Begegnungen mit mindestens einer leeren Seite (kein Team, kein
+        // Label) werden auf der Ergebnisliste nicht angezeigt - z.B.
+        // Freilose bei KO-Turnieren, wenn ein Bracket größer gewählt wurde
+        // als die tatsächliche Teilnehmerzahl (12 Teams in einem 16er-
+        // Bracket, 4 Plätze bleiben leer). Bugfix: vorher wurde nur eine
+        // Begegnung mit BEIDEN leeren Seiten ausgeblendet
+        // (partieIsEmptyPlaceholder()) - ein Freilos hat aber auf EINER
+        // Seite ein echtes Team, das ohne Gegner dastand und trotzdem
+        // angezeigt wurde. Siehe partieHasEmptySide().
+        $partien     = array_values(array_filter($partien, static fn(array $p) => !partieHasEmptySide($p)));
         $dateRange   = $spieltag !== null ? spieltagDateRange($partien, $spieltag['start'] ?? null) : '';
 
         // ── PDF-Export (reguläre Ligen: "Spieltag N", KO-Turniere: Rundenname

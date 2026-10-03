@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/TeamFormattingTrait.php
- * Fileversion: 1.10.1
+ * Fileversion: 1.11.0
  *
  * PHP version 8.2
  *
@@ -48,30 +48,47 @@ trait TeamFormattingTrait
      * Gast haben ein echtes Team ODER auch nur einen Anzeige-Namen (heim_label/
      * gast_label). Kommt bei KO-Turnieren vor, deren Teilnehmerzahl im alten LMO
      * auf die nächste Zweierpotenz aufgefüllt werden musste (z.B. 83 echte Teams
-     * → 128 Turnier-Plätze in Runde 1, die überzähligen Plätze wurden als reine
+     * → 128 Bracket-Plätze in Runde 1, die überzähligen Plätze wurden als reine
      * Dummy-Begegnungen ohne jede Zuordnung angelegt). Ein Platzhalter mit
      * Label wie "Sieger Spiel 3" gilt NICHT als leer – der ist ein bedeutungsvoller
      * "noch offen"-Platzhalter, kein reiner Datenmüll.
      */
+    /**
+     * Prüft eine Seite ("heim"/"gast") auf "leer" - KEIN echtes Team, KEIN
+     * informativer Freitext-Platzhalter. Arbeitet bewusst auf dem ROHEN
+     * Label (nicht über partieTeamName(), das den Freilos-Marker für die
+     * ANZEIGE bereits in den sichtbaren Text "Freilos" übersetzt) - sonst
+     * würde eine Freilos-Seite nach der Übersetzung fälschlich als "nicht
+     * leer" durchgehen, nur weil jetzt lesbarer Text dort steht.
+     *
+     * Als "leer" gilt: kein Team-Datensatz UND (Label ist leer ODER "___"
+     * - alte LMO-Dummy-Teams, siehe getOrCreateDummyTeam() in
+     * admin/handler_import_export.php - ODER der Freilos-Marker).
+     */
+    private static function partieSideIsEmptyRaw(array $partie, string $side) : bool
+    {
+        $idKey    = $side . '_id';
+        $nameKey  = $side . '_name';
+        $labelKey = $side . '_label';
+        if ((int)($partie[$idKey] ?? 0) > 0 && !empty($partie[$nameKey])) {
+            return false; // echtes Team
+        }
+        $label = trim((string)($partie[$labelKey] ?? ''));
+        return $label === '' || $label === '___' || (defined('KO_FREILOS_MARKER') && $label === KO_FREILOS_MARKER);
+    }
+
     public static function partieIsEmptyPlaceholder(array $partie) : bool
     {
-        // Wichtig: heim_id/gast_id zeigen bei diesen Plätzen NICHT auf "nichts"
-        // (id=0/null), sondern auf einen ECHTEN Team-Datensatz namens "___" (das
-        // alte LMO legt dafür extra ein Dummy-Team in teams_global an, siehe
-        // getOrCreateDummyTeam() in admin/handler_import_export.php). Eine reine
-        // "hat die Partie überhaupt eine id?"-Prüfung erkennt das daher nicht –
-        // es muss der aufgelöste Anzeigename selbst geprüft werden.
-        $isDummy = static fn(string $n) : bool => trim($n) === '' || trim($n) === '___';
-        return $isDummy(self::partieTeamName($partie, 'heim')) && $isDummy(self::partieTeamName($partie, 'gast'));
+        return self::partieSideIsEmptyRaw($partie, 'heim') && self::partieSideIsEmptyRaw($partie, 'gast');
     }
 
     /**
      * Freilos-Begegnung (Beitrag: Nutzeranfrage) - ein Team ohne echten
-     * Gegner, z.B. wenn ein KO-Turnier größer gewählt wurde als die
-     * tatsächliche Teilnehmerzahl (12 Teams in einem 16er-Turnier, die
+     * Gegner, z.B. wenn ein KO-Bracket größer gewählt wurde als die
+     * tatsächliche Teilnehmerzahl (12 Teams in einem 16er-Bracket, die
      * vier übrigen Plätze bleiben leer). Anders als
      * partieIsEmptyPlaceholder() (verlangt BEIDE Seiten leer, z.B. für
-     * eine komplett unbenutzte Turnier-Position) reicht hier bereits EINE
+     * eine komplett unbenutzte Bracket-Position) reicht hier bereits EINE
      * leere Seite - ein Team ganz ohne Gegnernamen oder -platzhalter ist
      * auf der Ergebnisliste nicht sinnvoll darstellbar. Eine Seite mit
      * einem Freitext-Platzhalter wie "Sieger Achtelfinale 1" gilt NICHT
@@ -80,8 +97,7 @@ trait TeamFormattingTrait
      */
     public static function partieHasEmptySide(array $partie) : bool
     {
-        $isDummy = static fn(string $n) : bool => trim($n) === '' || trim($n) === '___';
-        return $isDummy(self::partieTeamName($partie, 'heim')) || $isDummy(self::partieTeamName($partie, 'gast'));
+        return self::partieSideIsEmptyRaw($partie, 'heim') || self::partieSideIsEmptyRaw($partie, 'gast');
     }
     public static function partieTeamName(array $partie, string $side) : string
     {
@@ -91,7 +107,17 @@ trait TeamFormattingTrait
         if ((int)($partie[$idKey] ?? 0) > 0 && !empty($partie[$nameKey])) {
             return $partie[$nameKey];
         }
-        return $partie[$labelKey] ?? '';
+        $label = $partie[$labelKey] ?? '';
+        // Beitrag: Nutzeranfrage - der Freilos-Marker (KO_FREILOS_MARKER,
+        // siehe config_loader.php) ist ein interner technischer Wert und
+        // darf NIE roh angezeigt werden - zentral hier übersetzt, damit
+        // JEDE Ausgabestelle (Ergebnisse, Spielplan, Kreuztabelle, ...)
+        // automatisch den lokalisierten Text "Freilos" zeigt, ohne dass
+        // jede einzelne Stelle das selbst prüfen müsste.
+        if (defined('KO_FREILOS_MARKER') && $label === KO_FREILOS_MARKER) {
+            return function_exists('tf') ? tf('liga_freilos_label') : 'Freilos';
+        }
+        return $label;
     }
     /**
      * Sucht ein hochgeladenes Team-Logo (siehe Admin → Teams (global)). Gibt den

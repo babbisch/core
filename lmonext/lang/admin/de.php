@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: lang/admin/de.php
- * Fileversion: 1.57.1
+ * Fileversion: 1.58.0
  *
  * PHP version 8.2
  *
@@ -365,10 +365,12 @@ return [
     'sp_heading_all_matchdays'       => 'Alle Spieltage',
     'sp_btn_placeholder_short'       => '✏️ Platzh.',
     'sp_btn_team_short'              => '👤 Team',
+    'sp_btn_freilos_short'           => '🏳️ Freilos',
+    'sp_freilos_label'               => '🏳️ Freilos',
     'sp_placeholder_example_winner'  => 'z.B. Sieger R1P1',
     'sp_option_placeholder'          => '– Platzhalter –',
     'sp_placeholder_word'            => 'Platzhalter',
-    'sp_tooltip_toggle_team_placeholder' => 'Wechsel: echtes Team ↔ Platzhalter',
+    'sp_tooltip_toggle_team_placeholder' => 'Wechsel: echtes Team → Platzhalter → Freilos',
     'sp_btn_table'                   => '📊 Tabelle',
 
     // ── KO-Runden-Handler Flash-Meldungen (handler_ko.php) ──────────────────

@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: config_loader.php
- * Fileversion: 1.6.1
+ * Fileversion: 1.7.0
  *
  * PHP version 8.2
  *
@@ -38,6 +38,28 @@ if (!defined('LMO_DISPLAY_ERRORS_OVERRIDDEN')) {
 if (!defined('LMONEXT_VERSION')) {
     $_composer = json_decode((string)@file_get_contents(__DIR__ . '/composer.json'), true);
     define('LMONEXT_VERSION', $_composer['version'] ?? '1.0.0');
+}
+
+// ── Freilos-Marker für KO-Turniere (Beitrag: Nutzeranfrage) ──────────────────
+// Reservierter Wert, der in heim_label/gast_label einer KO-Begegnung steht,
+// wenn diese Seite BEWUSST ohne Gegner ist (das jeweils andere Team rückt
+// automatisch vor, ohne dass in teams_global ein Dummy-Team dafür angelegt
+// werden muss - z.B. bei einem 16er-Bracket mit nur 13 echten Teams).
+// Wird NIE roh angezeigt - jede Ausgabestelle übersetzt ihn über
+// t('sp_freilos_label')/tf('liga_freilos_label') in den sichtbaren Text
+// "Freilos" (siehe TeamFormattingTrait::partieTeamName()). Bewusst ein
+// technischer, sprachunabhängiger String (kein Freitext wie "Freilos"
+// selbst), damit er sich zuverlässig von einem frei eingegebenen
+// Platzhaltertext (z.B. "Sieger Achtelfinale 1") unterscheiden lässt, auch
+// wenn jemand zufällig denselben Text eintippt.
+//
+// WICHTIG: hier definiert (nicht in admin/bootstrap.php), weil
+// TeamFormattingTrait::partieTeamName() - das diesen Marker übersetzt -
+// auch im Besucherbereich läuft, der admin/bootstrap.php NIE lädt. Diese
+// Datei (config_loader.php) wird dagegen von BEIDEN Bootstrap-Dateien
+// geladen (admin/bootstrap.php UND frontend/bootstrap.php).
+if (!defined('KO_FREILOS_MARKER')) {
+    define('KO_FREILOS_MARKER', '__ko_freilos__');
 }
 
 // ── Konfiguration laden ─────────────────────────────────────────────────────

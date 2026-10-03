@@ -48,7 +48,7 @@ trait TeamFormattingTrait
      * Gast haben ein echtes Team ODER auch nur einen Anzeige-Namen (heim_label/
      * gast_label). Kommt bei KO-Turnieren vor, deren Teilnehmerzahl im alten LMO
      * auf die nächste Zweierpotenz aufgefüllt werden musste (z.B. 83 echte Teams
-     * → 128 Bracket-Plätze in Runde 1, die überzähligen Plätze wurden als reine
+     * → 128 Turnier-Plätze in Runde 1, die überzähligen Plätze wurden als reine
      * Dummy-Begegnungen ohne jede Zuordnung angelegt). Ein Platzhalter mit
      * Label wie "Sieger Spiel 3" gilt NICHT als leer – der ist ein bedeutungsvoller
      * "noch offen"-Platzhalter, kein reiner Datenmüll.
@@ -84,11 +84,11 @@ trait TeamFormattingTrait
 
     /**
      * Freilos-Begegnung (Beitrag: Nutzeranfrage) - ein Team ohne echten
-     * Gegner, z.B. wenn ein KO-Bracket größer gewählt wurde als die
-     * tatsächliche Teilnehmerzahl (12 Teams in einem 16er-Bracket, die
+     * Gegner, z.B. wenn ein KO-Turnier größer gewählt wurde als die
+     * tatsächliche Teilnehmerzahl (12 Teams in einem 16er-Turnier, die
      * vier übrigen Plätze bleiben leer). Anders als
      * partieIsEmptyPlaceholder() (verlangt BEIDE Seiten leer, z.B. für
-     * eine komplett unbenutzte Bracket-Position) reicht hier bereits EINE
+     * eine komplett unbenutzte Turnier-Position) reicht hier bereits EINE
      * leere Seite - ein Team ganz ohne Gegnernamen oder -platzhalter ist
      * auf der Ergebnisliste nicht sinnvoll darstellbar. Eine Seite mit
      * einem Freitext-Platzhalter wie "Sieger Achtelfinale 1" gilt NICHT

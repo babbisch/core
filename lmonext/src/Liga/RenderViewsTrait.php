@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/RenderViewsTrait.php
- * Fileversion: 1.39.0
+ * Fileversion: 1.39.1
  *
  * PHP version 8.2
  *
@@ -93,6 +93,10 @@ trait RenderViewsTrait
         $berichtIcon = $berichtUrl !== ''
             ? '<a href="' . h($berichtUrl) . '"' . self::linkTargetAttr($berichtTarget) . ' class="bericht-icon" title="' . h(tf('liga_link_spielbericht')) . '">📋</a>'
             : '';
+        $notizText = trim((string)($partie['notiz'] ?? ''));
+        $notizIcon = $notizText !== ''
+            ? '<span class="notiz-icon" title="' . h($notizText) . '">📝</span>'
+            : '';
 
         return renderPartial('partie_row', [
             'Datum'              => $datum,
@@ -108,7 +112,7 @@ trait RenderViewsTrait
             // "teamvergleich" existiert HeadToHeadTrait/self::renderH2hIcon()
             // in dieser Klasse nicht mehr, siehe CHANGELOG.md). Liefert '',
             // wenn das Addon nicht aktiv ist - kein Fehler.
-            'CompareIcon'         => \renderH2hIcon($hId, $gId, $heimRaw, $gastRaw, $showLogos) . $berichtIcon,
+            'CompareIcon'         => \renderH2hIcon($hId, $gId, $heimRaw, $gastRaw, $showLogos) . $berichtIcon . $notizIcon,
         ]);
     }
     /**

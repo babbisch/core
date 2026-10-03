@@ -749,6 +749,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## frontend/data_liga.php
 
+- Changelog: 3.12.1 - Neue globale Wrapper-Funktion partieHasEmptySide(), siehe TeamFormattingTrait.php 1.10.1.
 - Changelog: 3.12.0 - Wrapper-Funktionen renderTeamLogoImg()/renderTeamLogoImgWrapped() um den neuen $title-Parameter erweitert.
 - Changelog: 3.11.0 - Wrapper-Funktionen um die neuen Target-Parameter erweitert. Dabei bemerkt und mitbehoben: der renderPartieRow()-Wrapper war seit linkHomepage/linkBerichte/dateFormat nie nachgezogen worden und reichte bis eben nur die ersten fünf Parameter durch - ein externer Aufruf dieser globalen Funktion hätte diese drei Funktionen stets deaktiviert bekommen, unabhängig vom Aufrufer.
 - Changelog: 3.10.0 - Wrapper-Funktionen partieZeitDisplay()/renderResultsTable() um den neuen $dateFormat-Parameter erweitert (reine Durchreichung an LigaService).
@@ -935,6 +936,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/de.php
 
+- Changelog: 1.57.1 - Beschriftung des Notizfelds im KO-Eingabeformular von "📍 Spielort" zu "📝 Notiz zum Spiel" geändert - das Feld ist im Datenmodell ein freies Notizfeld (liga_partien.notiz), kein Standortfeld.
 - Changelog: 1.57.0 - Neuer Schlüssel ls_opt_target_top.
 - Changelog: 1.56.0 - Beschriftung der Linkziel-Auswahl (urlT_target/urlB_target) von "Neues Fenster"/"Gleiches Fenster" zu "In neuem Tab öffnen"/"Im gleichen Tab öffnen" geändert - zeitgemäßer, da Browser heute standardmäßig Tabs statt eigener Fenster öffnen.
 - Changelog: 1.55.0 - Neue Schlüssel ls_opt_target_blank/ls_opt_target_self.
@@ -1054,6 +1056,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/en.php
 
+- Changelog: 1.56.1 - Matching English label change, see lang/admin/de.php 1.57.1.
 - Changelog: 1.56.0 - New key ls_opt_target_top.
 - Changelog: 1.55.0 - Wording of the link-target selection changed from "New window"/"Same window" to "Open in new tab"/"Open in same tab" - see lang/admin/de.php 1.56.0.
 - Changelog: 1.54.0 - New keys ls_opt_target_blank/ls_opt_target_self.
@@ -1355,6 +1358,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## liga.php
 
+- Changelog: 3.29.1 - Bugfix (gemeldet: Freilos-Begegnungen bei KO-Turnieren - ein Team ohne echten Gegner - wurden auf der Ergebnisseite trotzdem angezeigt): der Filter verlangte bisher BEIDE Seiten leer (partieIsEmptyPlaceholder()), ein Freilos hat aber nur EINE leere Seite. Nutzt jetzt partieHasEmptySide().
 - Changelog: 3.29.0 - Neue zentrale Zuordnung (match-Ausdruck) von gespeichertem Wert ("blank"/"self"/"top") zum tatsächlichen HTML-target-Attribut, inkl. des neuen "top" (target="_top").
 - Changelog: 3.28.0 - Liest die neuen Einstellungen urlT_target/urlB_target und reicht sie an beide renderResultsTable()-Aufrufstellen durch.
 - Changelog: 3.27.0 - KRITISCHER Bugfix ("d.m.Y ohne Uhrzeit eingestellt, Ausgabe trotzdem mit Uhrzeit") - die Liga-Einstellung "Format der Anstoßtermine" (DatF) wurde bisher an keiner Stelle im Frontend gelesen, analog zu den Bugfixes bei ShowLogos/urlT/urlB in derselben Datei. Neue Variable $datumsFormat aus getLigaOptions() gelesen und an beide renderResultsTable()-Aufrufstellen durchgereicht.
@@ -1478,6 +1482,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/RenderViewsTrait.php
 
+- Changelog: 1.39.1 - Neues 📝-Symbol in der Ergebnisliste (renderPartieRow()), zeigt den Inhalt von liga_partien.notiz als Hover-Tooltip, sofern vorhanden - bisher wurde dieses Feld (im KO-Formular bisher "Spielort" beschriftet, im Datenmodell aber ein freies Notizfeld) nirgends im Frontend angezeigt.
 - Changelog: 1.39.0 - Die Kreuztabellen-Kopfzeile übergibt jetzt den vollen Teamnamen als Titel an renderTeamLogoImg() (siehe TeamFormattingTrait.php 1.10.0) - zeigt den Mannschaftsnamen als Tooltip beim Hovern über das Wappen, da dort sonst kein begleitender Text sichtbar ist.
 - Changelog: 1.38.0 - KRITISCHER Bugfix (gemeldet: "Hin-/Rückrundentabellen" in den Liga-Einstellungen deaktiviert, Reiter erscheinen im Frontend trotzdem) - die beiden Einstellungen tableHeimAusw/tableHinRueck wurden zwar überall sonst korrekt behandelt (gespeichert, exportiert, importiert, Standardwerte in templates.php), aber beim Rendern der Tabellen-Navigation (renderStandingsModeNav()) nie gelesen - betraf auch "Heim-/Auswärtstabellen", fiel dort nur nicht auf, da die Einstellung zufällig aktiv war. $validModes in renderStandingsTable() jetzt ebenfalls eingeschränkt - verhindert zusätzlich den Zugriff über einen direkt eingegebenen/geteilten Link mit &table=hin, wenn die Einstellung deaktiviert ist. Betrifft beide Tabellen-Rendering-Pfade (reguläre Tabelle und die sportartspezifische Tabelle für Volleyball & Co.).
 - Changelog: 1.37.0 - renderPartieRow()/renderResultsTable() bekommen zwei neue Parameter $homepageTarget/$berichtTarget, nutzen TeamFormattingTrait::linkTargetAttr() für den Spielbericht-Link (siehe TeamFormattingTrait.php 1.7.0).
@@ -1524,6 +1529,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/SpieltagRepositoryTrait.php
 
+- Changelog: 1.8.1 - Beitrag: Nutzeranfrage - p.notiz zur SELECT-Liste von getSpieltagPartien() ergänzt. War bisher gar nicht erst für das Frontend verfügbar.
 - Changelog: 1.8.0 - KRITISCHER Bugfix (gemeldet: eine unter "Link zum Spielbericht" eingetragene URL wird auf der Ergebnisseite nirgends angezeigt, obwohl die Liga-Einstellung "Spielberichte verlinken" aktiv ist; dieselbe Frage auch zu Mannschafts-Homepages) - getSpieltagPartien() selektierte bericht_url sowie die Team-Homepage-URL (teams_global.url) bisher überhaupt nicht, obwohl beide Spalten in der Datenbank existieren. Jetzt zusätzlich in der SELECT-Liste: p.bericht_url sowie th.url AS heim_url, tg.url AS gast_url.
 - Changelog: 1.7.0 - getSpieltagPartien() liest jetzt zusätzlich gt_grund, mit derselben defensiven Spalten-Prüfung wie bei gt_entscheidung/status/extra_data (für noch nicht migrierte Installationen).
 - Changelog: 1.6.0 - getSpieltagPartien() sortiert Spiele eines Spieltags jetzt primär chronologisch nach Anstoßzeit (p.zeit, älteste zuerst, Spiele ohne Zeit rutschen ans Ende statt an den Anfang) statt nach der bisherigen rein technischen spiel_nr-Reihenfolge (Anlege-/Import-Reihenfolge) - diese bleibt als Tie-Breaker bei gleicher/fehlender Zeit erhalten, für eine stabile Reihenfolge.
@@ -1562,6 +1568,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/TeamFormattingTrait.php
 
+- Changelog: 1.10.1 - Neue Funktion partieHasEmptySide() (Beitrag: Nutzeranfrage - Freilose bei KO-Turnieren sollen auf der Ergebnisliste nicht angezeigt werden). Anders als partieIsEmptyPlaceholder() (verlangt BEIDE Seiten leer) reicht hier bereits EINE leere Seite.
 - Changelog: 1.10.0 - renderTeamLogoImg()/renderTeamLogoImgWrapped() bekommen einen neuen optionalen Parameter $title, füllt sowohl title (Tooltip beim Hovern) als auch alt (Bildbeschreibung). Leer (Standard) bedeutet unverändertes bisheriges Verhalten.
 - Changelog: 1.9.0 - linkTargetAttr() unterstützt jetzt auch '_top' - wie bei '_self' kein rel="noopener" nötig, da kein neuer Browsing-Context geöffnet wird.
 - Changelog: 1.8.0 - partieZeitDisplay() übersetzt Wochentags-/Monatsnamen im formatierten Datum jetzt in die aktuelle Seitensprache (neue Funktion localizeDateOutput()). PHP date()/DateTime::format() geben "l"/"D"/"F"/"M" immer auf Englisch aus, unabhängig von der Seitensprache - ersetzt gezielt den für das jeweilige Datum berechneten englischen Wert durch die Übersetzung aus den vorhandenen liga_weekday_*/liga_month_*-Schlüsseln, robust gegenüber beliebigen Formatstring-Kombinationen. Bei Englisch als Seitensprache bleibt die Ausgabe unverändert.

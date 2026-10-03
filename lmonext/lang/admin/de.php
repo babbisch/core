@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: lang/admin/de.php
- * Fileversion: 1.57.0
+ * Fileversion: 1.57.1
  *
  * PHP version 8.2
  *
@@ -332,7 +332,7 @@ return [
     'sp_status_normal'               => '– normal –',
     'sp_status_ie'                   => 'i.E. (nach Elfmeterschießen)',
     'sp_status_nv'                   => 'n.V. (nach Verlängerung)',
-    'sp_placeholder_venue'           => '📍 Spielort',
+    'sp_placeholder_venue'           => '📝 Notiz zum Spiel',
     'sp_placeholder_report_link'     => '🔗 Link zum Spielbericht (optional)',
     'sp_placeholder_gt_grund'        => '📝 Zusätzliche Informationen zur Sportgericht-Entscheidung (optional)',
     'sp_label_saetze'                => 'Sätze',

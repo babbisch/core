@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: lang/admin/en.php
- * Fileversion: 1.56.0
+ * Fileversion: 1.56.1
  *
  * PHP version 8.2
  *
@@ -331,7 +331,7 @@ return [
     'sp_status_normal'               => '– normal –',
     'sp_status_ie'                   => 'On penalties',
     'sp_status_nv'                   => 'After extra time',
-    'sp_placeholder_venue'           => '📍 Venue',
+    'sp_placeholder_venue'           => '📝 Match note',
     'sp_placeholder_report_link'     => '🔗 Match report link (optional)',
     'sp_placeholder_gt_grund'        => '📝 Additional information about the sports court decision (optional)',
     'sp_label_saetze'                => 'Sets',

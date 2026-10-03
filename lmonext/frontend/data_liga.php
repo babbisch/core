@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: frontend/data_liga.php
- * Fileversion: 3.12.0
+ * Fileversion: 3.12.1
  *
  * PHP version 8.2
  *
@@ -169,6 +169,11 @@ function renderTickerBlock(int $ligaId) : string
 function partieIsEmptyPlaceholder(array $partie) : bool
 {
     return \LMOnext\Liga\LigaService::partieIsEmptyPlaceholder($partie);
+}
+
+function partieHasEmptySide(array $partie) : bool
+{
+    return \LMOnext\Liga\LigaService::partieHasEmptySide($partie);
 }
 
 function partieTeamName(array $partie, string $side) : string

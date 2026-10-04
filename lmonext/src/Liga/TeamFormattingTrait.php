@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/TeamFormattingTrait.php
- * Fileversion: 1.11.0
+ * Fileversion: 1.12.0
  *
  * PHP version 8.2
  *
@@ -226,6 +226,26 @@ trait TeamFormattingTrait
      * hinterlegten Homepage, wenn aktiv UND eine gültige http(s)-URL
      * hinterlegt ist.
      */
+    /**
+     * Logo-HTML für eine Begegnungsseite: bei aktivierten Logos UND einem
+     * Freilos (Beitrag: Nutzeranfrage) wird assets/img/freilos.svg gezeigt
+     * statt des normalen Teamwappens (das es ja mangels Team gar nicht
+     * geben kann) - sonst das gewohnte renderTeamLogoImg().
+     */
+    private static function resolveSideLogoHtml(array $partie, string $side, int $teamId, bool $showLogos) : string
+    {
+        if (!$showLogos) {
+            return '';
+        }
+        $labelKey = $side . '_label';
+        $label = trim((string)($partie[$labelKey] ?? ''));
+        if ($teamId <= 0 && defined('KO_FREILOS_MARKER') && $label === KO_FREILOS_MARKER) {
+            $freilosLabel = function_exists('tf') ? tf('liga_freilos_label') : 'Freilos';
+            return '<img src="assets/img/freilos.svg" alt="' . h($freilosLabel) . '" title="' . h($freilosLabel) . '" class="team-logo-inline">';
+        }
+        return self::renderTeamLogoImg($teamId, $showLogos);
+    }
+
     public static function partieTeamNameWithLogo(array $partie, string $side, bool $showLogos, bool $linkHomepage = false, string $linkTarget = '_blank') : string
     {
         $teamId = (int)($partie[$side . '_id'] ?? 0);
@@ -234,7 +254,7 @@ trait TeamFormattingTrait
         if ($url !== '') {
             $name = '<a href="' . h($url) . '"' . self::linkTargetAttr($linkTarget) . '>' . $name . '</a>';
         }
-        return self::renderTeamLogoImg($teamId, $showLogos) . $name;
+        return self::resolveSideLogoHtml($partie, $side, $teamId, $showLogos) . $name;
     }
     /**
      * Wie partieTeamNameWithLogo(), aber umgekehrte Reihenfolge (Name zuerst,
@@ -250,7 +270,7 @@ trait TeamFormattingTrait
         if ($url !== '') {
             $name = '<a href="' . h($url) . '"' . self::linkTargetAttr($linkTarget) . '>' . $name . '</a>';
         }
-        return $name . self::renderTeamLogoImg($teamId, $showLogos);
+        return $name . self::resolveSideLogoHtml($partie, $side, $teamId, $showLogos);
     }
     /**
      * Baut das target-/rel-Attribut-Fragment für einen Link, je nach

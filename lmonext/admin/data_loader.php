@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: data_loader.php
- * Fileversion: 1.17.0
+ * Fileversion: 1.17.1
  *
  * PHP version 8.2
  *
@@ -108,13 +108,9 @@ if (isLoggedIn()) {
             $stNr = (int)($_GET['nr'] ?? 1);
             $sLiga = $db->prepare('SELECT * FROM '.tbl('liga').' WHERE id=?');
             $sLiga->execute([$lid]); $spieltagData['liga'] = $sLiga->fetch();
-            // Ticker-Optionen laden (liga-weit)
-            $sTicker = $db->prepare('SELECT option_key,option_value FROM '.tbl('liga_options').'
-                WHERE liga_id=? AND option_key IN ("ticker","tickertext")');
-            $sTicker->execute([$lid]);
-            $tickerOpts = array_column($sTicker->fetchAll(), 'option_value', 'option_key');
-            $spieltagData['ticker']     = ($tickerOpts['ticker']     ?? '0') === '1';
-            $spieltagData['tickertext'] = $tickerOpts['tickertext'] ?? '';
+            // Ticker-Optionen werden hier nicht mehr geladen - der Ticker ist ein
+            // eigenständiges Addon und wird nur noch in den Liga-Einstellungen
+            // konfiguriert (siehe admin/view_liga_settings.php).
             $sST = $db->prepare('SELECT * FROM '.tbl('liga_spieltage').' WHERE liga_id=? AND nummer=?');
             $sST->execute([$lid, $stNr]); $spieltagData['spieltag'] = $sST->fetch();
             if ($spieltagData['spieltag']) {

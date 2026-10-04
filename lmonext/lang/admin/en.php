@@ -369,7 +369,7 @@ return [
     'sp_placeholder_example_winner'  => 'e.g. Winner R1P1',
     'sp_option_placeholder'          => '– Placeholder –',
     'sp_placeholder_word'            => 'Placeholder',
-    'sp_tooltip_toggle_team_placeholder' => 'Toggle: real team → placeholder → bye',
+    'sp_tooltip_toggle_team_placeholder' => 'Toggle: real team → placeholder → draw a bye',
     'sp_btn_table'                   => '📊 Table',
 
     // ── KO round handler flash messages (handler_ko.php) ────────────────────

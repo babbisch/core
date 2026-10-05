@@ -1185,7 +1185,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/frontend/de.php
 
-- Changelog: 1.63.1 - Info-Text überarbeitet (Copyright um Torsten Hofmann ergänzt, Beschreibung neu formuliert: moderne Open-Source-Software, KO-Systeme, Sportarten mit eigenen Tabellen- und Wertungsregeln, hexagonale Architektur, erweiterbar um Addons/Themes/Store) und neuer Schlüssel liga_info_link_github.
+- Changelog: 1.63.1 - Info-Text überarbeitet (Copyright um Torsten Hofmann ergänzt und neuer Schlüssel liga_info_link_github.
 - Changelog: 1.63.0 - Neuer Schlüssel liga_freilos_label ("Freilos") für die Anzeige von Freilos-Begegnungen bei KO-Turnieren.
 - Changelog: 1.62.0 - Neue Schlüssel liga_weekday_full_1..7 (volle Wochentagsnamen) und liga_month_short_1..12 (kurze Monatsnamen), ergänzen die bereits vorhandenen liga_weekday_mo..so/liga_month_1..12 - siehe TeamFormattingTrait.php 1.8.0.
 - Changelog: 1.61.0 - Neuer Sprachschlüssel liga_tab_karte ("Karte") für den neuen Reiter des team-notizen-Addons.

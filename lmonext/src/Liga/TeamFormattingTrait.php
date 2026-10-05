@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/TeamFormattingTrait.php
- * Fileversion: 1.8.0
+ * Fileversion: 1.12.0
  *
  * PHP version 8.2
  *
@@ -48,21 +48,56 @@ trait TeamFormattingTrait
      * Gast haben ein echtes Team ODER auch nur einen Anzeige-Namen (heim_label/
      * gast_label). Kommt bei KO-Turnieren vor, deren Teilnehmerzahl im alten LMO
      * auf die nächste Zweierpotenz aufgefüllt werden musste (z.B. 83 echte Teams
-     * → 128 Bracket-Plätze in Runde 1, die überzähligen Plätze wurden als reine
+     * → 128 Turnier-Plätze in Runde 1, die überzähligen Plätze wurden als reine
      * Dummy-Begegnungen ohne jede Zuordnung angelegt). Ein Platzhalter mit
      * Label wie "Sieger Spiel 3" gilt NICHT als leer – der ist ein bedeutungsvoller
      * "noch offen"-Platzhalter, kein reiner Datenmüll.
      */
+    /**
+     * Prüft eine Seite ("heim"/"gast") auf "leer" - KEIN echtes Team, KEIN
+     * informativer Freitext-Platzhalter. Arbeitet bewusst auf dem ROHEN
+     * Label (nicht über partieTeamName(), das den Freilos-Marker für die
+     * ANZEIGE bereits in den sichtbaren Text "Freilos" übersetzt) - sonst
+     * würde eine Freilos-Seite nach der Übersetzung fälschlich als "nicht
+     * leer" durchgehen, nur weil jetzt lesbarer Text dort steht.
+     *
+     * Als "leer" gilt: kein Team-Datensatz UND (Label ist leer ODER "___"
+     * - alte LMO-Dummy-Teams, siehe getOrCreateDummyTeam() in
+     * admin/handler_import_export.php - ODER der Freilos-Marker).
+     */
+    private static function partieSideIsEmptyRaw(array $partie, string $side) : bool
+    {
+        $idKey    = $side . '_id';
+        $nameKey  = $side . '_name';
+        $labelKey = $side . '_label';
+        if ((int)($partie[$idKey] ?? 0) > 0 && !empty($partie[$nameKey])) {
+            return false; // echtes Team
+        }
+        $label = trim((string)($partie[$labelKey] ?? ''));
+        return $label === '' || $label === '___' || (defined('KO_FREILOS_MARKER') && $label === KO_FREILOS_MARKER);
+    }
+
     public static function partieIsEmptyPlaceholder(array $partie) : bool
     {
-        // Wichtig: heim_id/gast_id zeigen bei diesen Plätzen NICHT auf "nichts"
-        // (id=0/null), sondern auf einen ECHTEN Team-Datensatz namens "___" (das
-        // alte LMO legt dafür extra ein Dummy-Team in teams_global an, siehe
-        // getOrCreateDummyTeam() in admin/handler_import_export.php). Eine reine
-        // "hat die Partie überhaupt eine id?"-Prüfung erkennt das daher nicht –
-        // es muss der aufgelöste Anzeigename selbst geprüft werden.
-        $isDummy = static fn(string $n) : bool => trim($n) === '' || trim($n) === '___';
-        return $isDummy(self::partieTeamName($partie, 'heim')) && $isDummy(self::partieTeamName($partie, 'gast'));
+        return self::partieSideIsEmptyRaw($partie, 'heim') && self::partieSideIsEmptyRaw($partie, 'gast');
+    }
+
+    /**
+     * Freilos-Begegnung (Beitrag: Nutzeranfrage) - ein Team ohne echten
+     * Gegner, z.B. wenn ein KO-Turnier größer gewählt wurde als die
+     * tatsächliche Teilnehmerzahl (12 Teams in einem 16er-Turnier, die
+     * vier übrigen Plätze bleiben leer). Anders als
+     * partieIsEmptyPlaceholder() (verlangt BEIDE Seiten leer, z.B. für
+     * eine komplett unbenutzte Turnier-Position) reicht hier bereits EINE
+     * leere Seite - ein Team ganz ohne Gegnernamen oder -platzhalter ist
+     * auf der Ergebnisliste nicht sinnvoll darstellbar. Eine Seite mit
+     * einem Freitext-Platzhalter wie "Sieger Achtelfinale 1" gilt NICHT
+     * als leer (dort steht ja etwas Informatives) - nur eine wirklich
+     * leere Seite (kein Team, kein Label) löst das Ausblenden aus.
+     */
+    public static function partieHasEmptySide(array $partie) : bool
+    {
+        return self::partieSideIsEmptyRaw($partie, 'heim') || self::partieSideIsEmptyRaw($partie, 'gast');
     }
     public static function partieTeamName(array $partie, string $side) : string
     {
@@ -72,7 +107,17 @@ trait TeamFormattingTrait
         if ((int)($partie[$idKey] ?? 0) > 0 && !empty($partie[$nameKey])) {
             return $partie[$nameKey];
         }
-        return $partie[$labelKey] ?? '';
+        $label = $partie[$labelKey] ?? '';
+        // Beitrag: Nutzeranfrage - der Freilos-Marker (KO_FREILOS_MARKER,
+        // siehe config_loader.php) ist ein interner technischer Wert und
+        // darf NIE roh angezeigt werden - zentral hier übersetzt, damit
+        // JEDE Ausgabestelle (Ergebnisse, Spielplan, Kreuztabelle, ...)
+        // automatisch den lokalisierten Text "Freilos" zeigt, ohne dass
+        // jede einzelne Stelle das selbst prüfen müsste.
+        if (defined('KO_FREILOS_MARKER') && $label === KO_FREILOS_MARKER) {
+            return function_exists('tf') ? tf('liga_freilos_label') : 'Freilos';
+        }
+        return $label;
     }
     /**
      * Sucht ein hochgeladenes Team-Logo (siehe Admin → Teams (global)). Gibt den
@@ -106,14 +151,21 @@ trait TeamFormattingTrait
      * ist) vor einem Teamnamen – nur wenn die Liga-Einstellung "Logo anzeigen"
      * (ShowLogos) aktiv ist, sonst leerer String. $teamId <= 0 (z.B. Freilos/
      * Label-only-Partien ohne echtes Team) liefert ebenfalls nichts.
+     *
+     * $title - z.B. der volle Teamname, wenn das Logo OHNE begleitenden Text
+     * steht (z.B. die Kreuztabellen-Kopfzeile) und die Mannschaft sonst nur
+     * durch das Bild erkennbar wäre. Füllt sowohl title (Tooltip beim Hovern)
+     * als auch alt (Bildbeschreibung, z.B. für Screenreader) - leer (Standard)
+     * bedeutet unverändertes bisheriges Verhalten (alt="").
      */
-    public static function renderTeamLogoImg(int $teamId, bool $showLogos) : string
+    public static function renderTeamLogoImg(int $teamId, bool $showLogos, string $title = '') : string
     {
         if (!$showLogos || $teamId <= 0) {
             return '';
         }
         $path = self::findTeamLogoPathFrontend($teamId) ?? 'assets/img/nopic-team.svg';
-        return '<img src="' . h($path) . '" alt="" class="team-logo-inline">';
+        $titleAttr = $title !== '' ? ' title="' . h($title) . '"' : '';
+        return '<img src="' . h($path) . '" alt="' . h($title) . '"' . $titleAttr . ' class="team-logo-inline">';
     }
     /**
      * Wie renderTeamLogoImg(), aber in einen <span> mit fester Breite verpackt
@@ -124,9 +176,9 @@ trait TeamFormattingTrait
      * weiterhin einfach '' zurück (kein leerer Wrapper, kein verschwendeter
      * Platz in Tabellen ohne Logos).
      */
-    public static function renderTeamLogoImgWrapped(int $teamId, bool $showLogos) : string
+    public static function renderTeamLogoImgWrapped(int $teamId, bool $showLogos, string $title = '') : string
     {
-        $img = self::renderTeamLogoImg($teamId, $showLogos);
+        $img = self::renderTeamLogoImg($teamId, $showLogos, $title);
         return $img !== '' ? '<span class="st-team-logo-wrap">' . $img . '</span>' : '';
     }
     /**
@@ -174,6 +226,26 @@ trait TeamFormattingTrait
      * hinterlegten Homepage, wenn aktiv UND eine gültige http(s)-URL
      * hinterlegt ist.
      */
+    /**
+     * Logo-HTML für eine Begegnungsseite: bei aktivierten Logos UND einem
+     * Freilos (Beitrag: Nutzeranfrage) wird assets/img/freilos.svg gezeigt
+     * statt des normalen Teamwappens (das es ja mangels Team gar nicht
+     * geben kann) - sonst das gewohnte renderTeamLogoImg().
+     */
+    private static function resolveSideLogoHtml(array $partie, string $side, int $teamId, bool $showLogos) : string
+    {
+        if (!$showLogos) {
+            return '';
+        }
+        $labelKey = $side . '_label';
+        $label = trim((string)($partie[$labelKey] ?? ''));
+        if ($teamId <= 0 && defined('KO_FREILOS_MARKER') && $label === KO_FREILOS_MARKER) {
+            $freilosLabel = function_exists('tf') ? tf('liga_freilos_label') : 'Freilos';
+            return '<img src="assets/img/freilos.svg" alt="' . h($freilosLabel) . '" title="' . h($freilosLabel) . '" class="team-logo-inline">';
+        }
+        return self::renderTeamLogoImg($teamId, $showLogos);
+    }
+
     public static function partieTeamNameWithLogo(array $partie, string $side, bool $showLogos, bool $linkHomepage = false, string $linkTarget = '_blank') : string
     {
         $teamId = (int)($partie[$side . '_id'] ?? 0);
@@ -182,7 +254,7 @@ trait TeamFormattingTrait
         if ($url !== '') {
             $name = '<a href="' . h($url) . '"' . self::linkTargetAttr($linkTarget) . '>' . $name . '</a>';
         }
-        return self::renderTeamLogoImg($teamId, $showLogos) . $name;
+        return self::resolveSideLogoHtml($partie, $side, $teamId, $showLogos) . $name;
     }
     /**
      * Wie partieTeamNameWithLogo(), aber umgekehrte Reihenfolge (Name zuerst,
@@ -198,7 +270,7 @@ trait TeamFormattingTrait
         if ($url !== '') {
             $name = '<a href="' . h($url) . '"' . self::linkTargetAttr($linkTarget) . '>' . $name . '</a>';
         }
-        return $name . self::renderTeamLogoImg($teamId, $showLogos);
+        return $name . self::resolveSideLogoHtml($partie, $side, $teamId, $showLogos);
     }
     /**
      * Baut das target-/rel-Attribut-Fragment für einen Link, je nach
@@ -209,7 +281,10 @@ trait TeamFormattingTrait
      */
     public static function linkTargetAttr(string $linkTarget) : string
     {
-        return $linkTarget === '_self' ? '' : ' target="_blank" rel="noopener"';
+        if ($linkTarget === '_self' || $linkTarget === '_top') {
+            return $linkTarget === '_top' ? ' target="_top"' : '';
+        }
+        return ' target="_blank" rel="noopener"';
     }
     /**
      * Datum/Uhrzeit einer einzelnen Partie: eigene Zeit falls gesetzt, sonst der

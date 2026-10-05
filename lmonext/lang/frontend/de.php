@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: lang/frontend/de.php
- * Fileversion: 1.62.0
+ * Fileversion: 1.63.1
  *
  * PHP version 8.2
  *
@@ -143,6 +143,7 @@ return [
     'liga_standings_col_u'        => 'U',
     'liga_standings_col_n'        => 'N',
     'liga_standings_col_tore'     => 'Tore',
+    'liga_freilos_label'          => 'Freilos',
     'liga_standings_col_diff'     => 'Diff',
     'liga_standings_col_pkt'      => 'Pkt',
     'liga_standings_straf_erzielt'   => 'Tore',
@@ -200,13 +201,13 @@ return [
     'liga_tab_info'          => 'Info',
 
     // ── Info-Ansicht ──────────────────────────────────────────────────────────
-    'liga_info_title'      => 'LMOnext – Version {version}',
-    'liga_info_copyright'  => '© 2026 Dietmar Kersting',
+    'liga_info_copyright'  => '© 2026 Dietmar Kersting, Torsten Hofmann',
     'liga_info_text_1'     => 'LMOnext ist eine Software zur Verwaltung von Sportligen und Turnieren – für reguläre Ligen ebenso wie für KO-Turniere mit automatischer Rundenstruktur.',
     'liga_info_text_2'     => 'Es handelt sich um eine komplette Neuentwicklung für PHP 8 und MySQL/MariaDB, inspiriert vom Liga Manager Online (LMO).',
     'liga_info_license'    => 'Dieses Projekt steht unter der GNU General Public License v3.0 (GPLv3).',
     'liga_info_link_homepage' => '<a href="https://www.liga-manager-online.org" target="_blank" rel="noopener">Homepage</a>',
     'liga_info_link_forum'    => '<a href="https://www.liga-manager-online.org/forum/" target="_blank" rel="noopener">Forum</a>',
+    'liga_info_link_github'   => '<a href="https://github.com/lmonext-org/core" target="_blank" rel="noopener">GitHub</a>',
 
     // ── Kalender-Ansicht ──────────────────────────────────────────────────────
     'liga_kalender_today' => 'Heute',

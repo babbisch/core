@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: lang/admin/de.php
- * Fileversion: 1.55.0
+ * Fileversion: 1.58.0
  *
  * PHP version 8.2
  *
@@ -332,7 +332,7 @@ return [
     'sp_status_normal'               => '– normal –',
     'sp_status_ie'                   => 'i.E. (nach Elfmeterschießen)',
     'sp_status_nv'                   => 'n.V. (nach Verlängerung)',
-    'sp_placeholder_venue'           => '📍 Spielort',
+    'sp_placeholder_venue'           => '📝 Notiz zum Spiel',
     'sp_placeholder_report_link'     => '🔗 Link zum Spielbericht (optional)',
     'sp_placeholder_gt_grund'        => '📝 Zusätzliche Informationen zur Sportgericht-Entscheidung (optional)',
     'sp_label_saetze'                => 'Sätze',
@@ -365,10 +365,12 @@ return [
     'sp_heading_all_matchdays'       => 'Alle Spieltage',
     'sp_btn_placeholder_short'       => '✏️ Platzh.',
     'sp_btn_team_short'              => '👤 Team',
+    'sp_btn_freilos_short'           => '🏳️ Freilos',
+    'sp_freilos_label'               => '🏳️ Freilos',
     'sp_placeholder_example_winner'  => 'z.B. Sieger R1P1',
     'sp_option_placeholder'          => '– Platzhalter –',
     'sp_placeholder_word'            => 'Platzhalter',
-    'sp_tooltip_toggle_team_placeholder' => 'Wechsel: echtes Team ↔ Platzhalter',
+    'sp_tooltip_toggle_team_placeholder' => 'Wechsel: echtes Team → Platzhalter → Freilos',
     'sp_btn_table'                   => '📊 Tabelle',
 
     // ── KO-Runden-Handler Flash-Meldungen (handler_ko.php) ──────────────────
@@ -664,8 +666,9 @@ return [
     'ls_heading_verlinkungen' => 'Verlinkungen',
     'ls_cb_team_homepage'     => 'Mannschafts-Homepages verlinken',
     'ls_cb_spielberichte'     => 'Spielberichte verlinken',
-    'ls_opt_target_blank'     => 'Neues Fenster',
-    'ls_opt_target_self'      => 'Gleiches Fenster',
+    'ls_opt_target_blank'     => 'In neuem Tab öffnen',
+    'ls_opt_target_self'      => 'Im gleichen Tab öffnen',
+    'ls_opt_target_top'       => 'Im obersten Fenster öffnen (aus iframes ausbrechen)',
     'ls_heading_playoff_mode' => 'Playoff Modus – Heimspieleinstellung',
     'ls_label_modusauswahl'   => 'Modusauswahl',
     'ls_opt_mod_111'          => 'Mod.: 1-1-1-...',

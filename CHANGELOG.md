@@ -221,6 +221,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/bootstrap.php
 
+- Changelog: 1.32.1 - Update-Prüfung: neue Funktion normalizeVersionForCompare() schneidet einen UNBEKANNTEN Versionszusatz (z.B. "-C" bei "1.11.7-C", eine eigene Kennzeichnung einer angepassten Installation) vor dem Vergleich ab, bekannte Vorabversions-Zusätze (dev, alpha, beta, rc, pl, optional mit Nummer) bleiben erhalten. Hintergrund: version_compare() wertet jeden unbekannten Zusatz als niedriger als alle bekannten - "1.11.7-C" galt dadurch als älter als "1.11.7" und der Update-Hinweis erschien, obwohl dieselbe Version läuft. Cache-Dateiname von lmonext_core_update_v1.json auf v2 geändert, damit ein zuvor gecachtes "Update verfügbar" nicht bis zu 24h nachwirkt.
+- Changelog: 1.32.0 - KO_FREILOS_MARKER-Konstante nach config_loader.php verschoben (Freilos-Funktion für KO-Turniere - siehe dortiger und TeamFormattingTrait.php-Changelog-Eintrag für den vollständigen Hintergrund): lag ursprünglich hier, aber TeamFormattingTrait::partieTeamName() - das diesen Marker übersetzt - läuft auch im Besucherbereich, der admin/bootstrap.php nie lädt. Wäre ohne diese Korrektur beim ersten Aufruf der Ergebnisseite mit einer Freilos-Begegnung zu einem fatalen Fehler ("Undefined constant") gekommen.
 - Changelog: 1.31.1 - KRITISCHER Bugfix (Fehlerlog: "Class LMOnext\Sport\KegelnProfile not found" beim Import einer Kegel-Liga) - die neue Sportart "kegeln" (src/Sport/KegelnProfile.php 1.0.0, in SportRegistry.php 1.1.0 registriert) wurde nicht per require_once eingebunden. LMOnext nutzt kein Autoloading für src/-Klassen, jede neue Profil-Klasse muss hier explizit gelistet sein - das war beim Hinzufügen von Kegeln übersehen worden.
 - Changelog: 1.31.0 - Beitrag: Nutzeranfrage - checkCoreUpdateAvailable() liest jetzt zusätzlich das Feld stable.announcement aus check_version.json (Link zur Forenankündigung, die das Update beschreibt - hilfreicher als der reine Download-Link). Optional/rückwärtskompatibel: leerer String, falls eine ältere check_version.json dieses Feld noch nicht liefert.
 - Changelog: 1.30.1 - Bugfix: checkCoreUpdateAvailable() prüft jetzt is_file() VOR dem Lesen der Cache-Datei, statt sich auf den @-Operator zu verlassen - die error_reporting()===0-Prüfung im Fehler-Handler (siehe 1.30.0) greift auf manchen Servern nicht zuverlässig (z.B. bei aktivem Xdebug-"Scream"-Modus, der die Wirkung von @ bewusst aufhebt), wodurch die erwartete "Cache-Datei existiert noch nicht"-Situation beim allerersten Aufruf trotzdem als Warnung im Log landete.
@@ -272,6 +274,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/data_loader.php
 
+- Changelog: 1.17.1 - Das Laden der Ticker-Optionen (ticker/tickertext) für die Spieltag-Ansicht entfernt - einziger Verbraucher war der oben genannte, jetzt entfernte Ticker-Block in view_spieltag.php (1.12.1).
+- Changelog: 1.17.0 - KRITISCHER Bugfix (gemeldet: bei einem KO-Turnier mit Freilos-Plätzen verschwindet das Team mit Freilos aus der Team-Auswahl der nächsten Runde, sobald andere Paarungen der Vorrunde bereits ausgewertet sind) - die "Sieger der Vorrunde"-Abfrage (prevWinners) schloss eine Begegnung mit einer NULL-Seite bisher komplett aus (WHERE heim_id IS NOT NULL AND gast_id IS NOT NULL) - genau das ist aber ein Freilos. Die Abfrage erkennt Freilos-Paarungen (KO_FREILOS_MARKER) jetzt zusätzlich und nimmt das verbliebene Team automatisch als Sieger auf, ohne dass überhaupt ein Ergebnis eingetragen sein muss.
 - Changelog: 1.16.0 - Bugfix (Fehlerlog: 3x "Trying to access array offset on false" in view_liga_spieltage.php): ruft man liga_spieltage mit der ID einer nicht (mehr) existierenden Liga auf (gelöscht oder veralteter Link), lieferte fetch() false, $ligaDetail war durch die übrigen Schlüssel aber trotzdem "wahr" und die Ansicht griff auf false['id'] zu. Jetzt Meldung "Liga nicht gefunden" (vorhandener Schlüssel ls_liga_not_found) und Rücksprung zur Übersicht.
 - Changelog: 1.15.0 - Aktion "liga_detail" umgebaut zum "Liga öffnen"-Direkteinstieg: lädt keine Übersichtsdaten mehr, sondern ermittelt per resolveLigaEntrySpieltagNr() (siehe admin/bootstrap.php 1.28.0) den aktuellen Spieltag und leitet per redirect() direkt zu "?action=spieltag&liga_id=…&nr=…" weiter (Fallback auf die neue Aktion "liga_spieltage", falls die Liga noch keine Spieltage hat). Die bisherige Datenladung für die Spieltage-Übersicht läuft jetzt unter der neuen Aktion "liga_spieltage" (unverändert, nur umbenannt). Im Spieltag-Block: ruft bei jedem gefundenen Spieltag rememberLigaLastSpieltag() auf, damit der Direkteinstieg beim nächsten Öffnen der Liga wieder dorthin zurückführt; lädt zusätzlich die erwartete Rundenanzahl (liga_options "Rounds") in $spieltagData["expected_rounds"] für den KO-Rundenhinweis im jetzt auch auf dieser Seite eingebundenen Navigationsblock (siehe admin/view_liga_nav.php).
 - Changelog: 1.14.0 - Bugfix/Feature (die vorherige feste Sortierung "ORDER BY l.datum DESC" für archivierte Ligen ergab keine sinnvolle Reihenfolge - batch-weise importierte Ligen erschienen in Import-Reihenfolge statt Saison-Reihenfolge, da "datum" offenbar eher dem Erstellungszeitpunkt des DB-Eintrags entspricht als dem Saison-Startdatum): archiv-Aktion unterstützt jetzt eine per Klick umschaltbare Sortierung (GET-Parameter sort=id|name|datum, dir=asc|desc, Whitelist-geprüft gegen SQL-Injection, da ORDER BY keine Bind-Parameter erlaubt) statt einer festen Vorgabe. Default weiterhin "name" absteigend (String-Sortierung bei gleichem Liga-Basisnamen mit Saison-Suffix ergibt korrekt neueste-zuerst, z.B. "2025/26" vor "1963/64" - mit einem Sortier-Test verifiziert).
@@ -355,6 +359,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/handler_ko.php
 
+- Changelog: 1.4.0 - Beitrag: Nutzeranfrage - renderKoTeamPicker() unterstützt jetzt einen dritten Zustand "Freilos" neben "Team" und "Platzhalter" (bei einem größer gewählten KO-Bracket als die tatsächliche Teilnehmerzahl, z.B. 16er-Bracket für 13 Teams, braucht man für die übrigen Plätze kein Dummy-Team mehr in teams_global). Freilos speichert team_id=0 mit dem neuen KO_FREILOS_MARKER als Label statt freiem Text.
 - Changelog: 1.3.2 - Projektname auf "LMOnext" umgestellt (vorher "Online-Liga-Verwaltung Board" / "OLVBoard")
 - Changelog: 1.3.1 - Flash-Meldungen (save_ko_runde, fix_ko_rounds) über t() übersetzt
 - Changelog: 1.3.0 - renderKoTeamPicker(): Texte über t() übersetzt
@@ -389,6 +394,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/handler_settings.php
 
+- Changelog: 1.19.0 - Akzeptiert jetzt auch den Wert "top" bei urlT_target/urlB_target, gegen eine Whitelist validiert.
 - Changelog: 1.18.0 - Speichert die neuen Einstellungen urlT_target/urlB_target (Werte "blank"/"self"), siehe admin/view_liga_settings.php 1.23.0.
 - Changelog: 1.17.0 - Sportart-Validierung beim Speichern der Liga-Einstellungen nutzt jetzt dynamisch array_keys(SportRegistry::all()) statt einer festen Liste - siehe admin/handler_import_export.php 1.14.0 für den vollständigen Hintergrund.
 - Changelog: 1.16.0 - Liga-Einstellungen speichern die Option ShowLogos nicht mehr (ersetzt durch die globale Einstellung "Mannschaftslogos anzeigen?"). Bereits gespeicherte Werte bleiben unangetastet und dienen nur noch als Rückfall, solange die globale Einstellung nie gesetzt wurde.
@@ -544,6 +550,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/view_liga_settings.php
 
+- Changelog: 1.24.0 - Beitrag: Nutzeranfrage - dritte Option "Im obersten Fenster öffnen (aus iframes ausbrechen)" (target="_top") neben den beiden bestehenden bei der Linkziel-Auswahl für Mannschafts-Homepages/Spielberichte.
 - Changelog: 1.23.0 - Beitrag: Nutzeranfrage - neue Auswahl "Neues Fenster"/"Gleiches Fenster" neben "Mannschafts-Homepages verlinken" und "Spielberichte verlinken" (urlT_target/urlB_target), jeweils separat wählbar.
 - Changelog: 1.22.0 - Beitrag: Nutzeranfrage - "Kegeln" erscheint jetzt automatisch in der Sportart-Auswahl (nutzt bereits SportRegistry::all(), keine eigene Änderung an der Dropdown-Liste nötig). Nebenbei: die "keine Unentschieden"-Anzeige war bisher an einer festen Liste ['football','handball'] festgemacht, die bei jeder neuen Sportart hätte erneut gepflegt werden müssen - jetzt dynamisch aus SportProfile::supportsDraws() aller registrierten Sportarten gebaut (auch der JavaScript-Teil beim Umschalten des Dropdowns), bleibt dadurch automatisch korrekt für künftige Sportarten.
 - Changelog: 1.21.0 - Beitrag: Nutzeranfrage - Standardwert für "Spielfrei anzeigen" (ShowSpielfrei) auf deaktiviert geändert. Betrifft Ligen ohne explizit gespeicherten Wert - weder "Liga erstellen" noch der .l98-Import legen dafür eine eigene liga_options-Zeile an, beide hingen bisher ausschließlich am Fallback-Wert dieser Checkbox-Anzeige.
@@ -618,6 +625,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/view_spieltag.php
 
+- Changelog: 1.12.1 - Bugfix (von Torsten gemeldet: bei deaktiviertem Addon "ticker" erschien in KO-Ligen unter "Ergebnisse eintragen" weiterhin der Block "Spieltags-unabhängige Einstellungen" mit Ticker anzeigen/Tickertext/Ticker speichern) - der Block war fest im Core verdrahtet und nicht an das Addon gekoppelt, anders als die Ticker-Einstellungen in den Liga-Einstellungen (dort bereits an isEnabled('ticker') gebunden). Block entfernt - der Ticker wird jetzt ausschließlich unter Einstellungen > Anzeigen/Darstellung konfiguriert, und nur bei aktiviertem Addon.
+- Changelog: 1.12.0 - koTogglePicker()/koPickerHtml() auf den neuen 3-Stufen-Zyklus Team → Platzhalter → Freilos → Team erweitert (siehe admin/handler_ko.php 1.4.0 für den PHP-seitigen Hintergrund). Räumt dabei sorgfältig die name-Attribute der beteiligten Formularfelder um, damit nie zwei Felder gleichzeitig denselben Namen tragen (sonst im POST mehrdeutig, abhängig von der DOM-Reihenfolge).
 - Changelog: 1.11.0 - Neuer Hook-Punkt admin.spieltag_partie_row - direkt unter dem "Link zum Spielbericht"-Feld jeder Begegnung, liefert partie_id/liga_id/heim_id/gast_id. Erlaubt Addons (z.B. player-pro: Spielbericht mit Aufstellung/Wechseln/Karten/Toren pro Begegnung), sich dort mit einem eigenen Link einzuklinken, ohne dass der Core das jeweilige Addon kennen muss - analog zu liga.view_render bei liga.php. Betrifft nur die reguläre (Nicht-KO-) Ergebnistabelle.
 - Changelog: 1.10.0 - Bugfix (auf schmalen Bildschirmen quetschten sich die Heim-/Gast-Dropdowns in der Ergebniseingabe auf einen einzelnen sichtbaren Buchstaben zusammen - die Tabelle hatte keinerlei Mindestbreite und wurde stattdessen auf width:100% zusammengedrückt, im gesamten Admin-CSS gab es bis dahin keine einzige @media-Regel): die Ergebnistabelle (reguläre Liga) bekommt jetzt eine Mindestbreite (860px) in einem horizontal scrollbaren Container statt sich zu stauchen, Heim-/Gast-Dropdowns zusätzlich mit eigener Mindestbreite (150px). Gleiches Problem im KO-Modus behoben: die per CSS-Grid dargestellten Paarungs-Zeilen (.ko-spiel-zeile) nutzten bare "1fr"-Spalten für die Teamnamen, die ohne Mindestbreite bis auf 0 schrumpfen können - jetzt minmax(120px,1fr), Container ebenfalls horizontal scrollbar. Rein additive CSS-Änderung, Desktop-Darstellung unverändert.
 - Changelog: 1.9.0 - gemeinsamer Liga-Navigationsblock (admin/view_liga_nav.php, neu) oben eingebunden - dieselben Aktions-Buttons wie auf der Spieltage-Übersicht sind jetzt auch bei der Ergebniseingabe sichtbar, inkl. neuem Link "Spieltage-Übersicht". Der dadurch überflüssige "← Liganame"-Rücksprunglink wurde entfernt. Die Schnellnavigation "Alle Spieltage"/"Alle Runden" wurde vom Seitenende direkt unter den Navigationsblock verschoben (und steht jetzt über statt unter dem Ergebniseingabe-Formular).
@@ -703,6 +712,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## config_loader.php
 
+- Changelog: 1.7.0 - Neue Konstante KO_FREILOS_MARKER (Beitrag: Nutzeranfrage) - reservierter Marker-Wert für ein Freilos bei KO-Turnieren, hier definiert statt in admin/bootstrap.php, da diese Datei von BEIDEN Bootstrap-Dateien (admin UND frontend) geladen wird - der Marker muss auch im Besucherbereich bekannt sein (siehe TeamFormattingTrait::partieTeamName()).
 - Changelog: 1.6.0 - Addon-Manager-Framework integriert (Beitrag Torsten Hofmann): neue Konstante LMONEXT_VERSION aus composer.json (version-Feld), wird vom AddonManager benutzt, um min_core_version aus addon.json gegen die tatsächlich laufende LMOnext-Version zu prüfen.
 - Changelog: 1.5.0 - Neue Konstante LMO_FORCE_HTTPS (Standard: true), mit der die automatische HTTP→HTTPS-Weiterleitung für Testinstallationen auf einem Host ohne SSL-Zertifikat abschaltbar ist (setzbar in config.php per define() oder in der .env als LMO_FORCE_HTTPS=0) - ohne diesen Schalter wäre eine solche Installation nach dem Speichern der Konfiguration komplett unerreichbar (jeder Request würde in einen ins Leere laufenden 301-Redirect auf https:// laufen). Dafür musste der "Konfiguration laden"-Block (config.php/.env einlesen) vor den HTTPS-Erzwingung-Block gezogen werden - die Konstante muss bekannt sein, BEVOR die Weiterleitung entschieden wird; alle anderen Blöcke behalten ihre bisherige Reihenfolge. Neue wiederverwendbare Funktion lmoIsHttps() (vorher inline im Redirect-Block) wird jetzt zusätzlich vom neuen Info-Hinweis unter Administrator → Einstellungen (siehe admin/view_settings.php 1.6.0) und vom Installer (siehe install.php 2.6.0) verwendet.
 - Changelog: 1.4.0 - Neue zentrale Funktionen phpIssueLogFile()/logPhpIssue()/readPhpIssueLog() für die Datei-basierte Fehler/Warnungen-Protokollierung (Datei statt DB-Tabelle, damit das Log auch bei einem Datenbankproblem noch funktioniert), mit automatischer Größenbegrenzung/Rotation.
@@ -747,6 +757,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## frontend/data_liga.php
 
+- Changelog: 3.12.1 - Neue globale Wrapper-Funktion partieHasEmptySide(), siehe TeamFormattingTrait.php 1.10.1.
+- Changelog: 3.12.0 - Wrapper-Funktionen renderTeamLogoImg()/renderTeamLogoImgWrapped() um den neuen $title-Parameter erweitert.
 - Changelog: 3.11.0 - Wrapper-Funktionen um die neuen Target-Parameter erweitert. Dabei bemerkt und mitbehoben: der renderPartieRow()-Wrapper war seit linkHomepage/linkBerichte/dateFormat nie nachgezogen worden und reichte bis eben nur die ersten fünf Parameter durch - ein externer Aufruf dieser globalen Funktion hätte diese drei Funktionen stets deaktiviert bekommen, unabhängig vom Aufrufer.
 - Changelog: 3.10.0 - Wrapper-Funktionen partieZeitDisplay()/renderResultsTable() um den neuen $dateFormat-Parameter erweitert (reine Durchreichung an LigaService).
 - Changelog: 3.9.0 - Wrapper-Funktionen renderTeamStatBox()/renderOverallStatsBlock() um den neuen $toreLabel-Parameter erweitert (reine Durchreichung an LigaService, siehe RenderViewsTrait.php 1.35.0).
@@ -932,6 +944,10 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/de.php
 
+- Changelog: 1.58.0 - Neue Schlüssel sp_btn_freilos_short/sp_freilos_label für den 3-Stufen-KO-Picker, sp_tooltip_toggle_team_placeholder aktualisiert.
+- Changelog: 1.57.1 - Beschriftung des Notizfelds im KO-Eingabeformular von "📍 Spielort" zu "📝 Notiz zum Spiel" geändert - das Feld ist im Datenmodell ein freies Notizfeld (liga_partien.notiz), kein Standortfeld.
+- Changelog: 1.57.0 - Neuer Schlüssel ls_opt_target_top.
+- Changelog: 1.56.0 - Beschriftung der Linkziel-Auswahl (urlT_target/urlB_target) von "Neues Fenster"/"Gleiches Fenster" zu "In neuem Tab öffnen"/"Im gleichen Tab öffnen" geändert - zeitgemäßer, da Browser heute standardmäßig Tabs statt eigener Fenster öffnen.
 - Changelog: 1.55.0 - Neue Schlüssel ls_opt_target_blank/ls_opt_target_self.
 - Changelog: 1.54.0 - Neuer Schlüssel wartung_error_not_native_backup.
 - Changelog: 1.53.0 - Neue Schlüssel settings_label_show_team_logos/settings_hint_show_team_logos. Der Schlüssel ls_label_show_logos wird nicht mehr verwendet (bewusst nicht entfernt, harmlos).
@@ -1049,6 +1065,10 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/en.php
 
+- Changelog: 1.57.0 - Matching new/updated keys, see lang/admin/de.php 1.58.0.
+- Changelog: 1.56.1 - Matching English label change, see lang/admin/de.php 1.57.1.
+- Changelog: 1.56.0 - New key ls_opt_target_top.
+- Changelog: 1.55.0 - Wording of the link-target selection changed from "New window"/"Same window" to "Open in new tab"/"Open in same tab" - see lang/admin/de.php 1.56.0.
 - Changelog: 1.54.0 - New keys ls_opt_target_blank/ls_opt_target_self.
 - Changelog: 1.53.0 - New key wartung_error_not_native_backup.
 - Changelog: 1.52.0 - New keys settings_label_show_team_logos/settings_hint_show_team_logos. Key ls_label_show_logos is no longer used (intentionally left in place, harmless).
@@ -1165,6 +1185,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/frontend/de.php
 
+- Changelog: 1.63.1 - Info-Text überarbeitet (Copyright um Torsten Hofmann ergänzt und neuer Schlüssel liga_info_link_github.
+- Changelog: 1.63.0 - Neuer Schlüssel liga_freilos_label ("Freilos") für die Anzeige von Freilos-Begegnungen bei KO-Turnieren.
 - Changelog: 1.62.0 - Neue Schlüssel liga_weekday_full_1..7 (volle Wochentagsnamen) und liga_month_short_1..12 (kurze Monatsnamen), ergänzen die bereits vorhandenen liga_weekday_mo..so/liga_month_1..12 - siehe TeamFormattingTrait.php 1.8.0.
 - Changelog: 1.61.0 - Neuer Sprachschlüssel liga_tab_karte ("Karte") für den neuen Reiter des team-notizen-Addons.
 - Changelog: 1.58.0 - Neuer Schlüssel liga_gt_footnote_grund für den angehängten Zusatztext in der Grüne-Tisch-Fußnote.
@@ -1251,6 +1273,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/frontend/en.php
 
+- Changelog: 1.63.1 - Info text revised to match the German version, new key liga_info_link_github - see lang/frontend/de.php 1.63.1.
+- Changelog: 1.63.0 - New key liga_freilos_label ("Bye"), see lang/frontend/de.php 1.63.0.
 - Changelog: 1.62.0 - Neue Schlüssel liga_weekday_full_1..7 und liga_month_short_1..12, siehe lang/frontend/de.php 1.62.0.
 - Changelog: 1.61.0 - New language key liga_tab_karte ("Map") for the new tab of the team-notizen add-on.
 - Changelog: 1.58.0 - New key liga_gt_footnote_grund for the appended additional text in the GT footnote.
@@ -1348,6 +1372,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## liga.php
 
+- Changelog: 3.29.1 - Bugfix (gemeldet: Freilos-Begegnungen bei KO-Turnieren - ein Team ohne echten Gegner - wurden auf der Ergebnisseite trotzdem angezeigt): der Filter verlangte bisher BEIDE Seiten leer (partieIsEmptyPlaceholder()), ein Freilos hat aber nur EINE leere Seite. Nutzt jetzt partieHasEmptySide().
+- Changelog: 3.29.0 - Neue zentrale Zuordnung (match-Ausdruck) von gespeichertem Wert ("blank"/"self"/"top") zum tatsächlichen HTML-target-Attribut, inkl. des neuen "top" (target="_top").
 - Changelog: 3.28.0 - Liest die neuen Einstellungen urlT_target/urlB_target und reicht sie an beide renderResultsTable()-Aufrufstellen durch.
 - Changelog: 3.27.0 - KRITISCHER Bugfix ("d.m.Y ohne Uhrzeit eingestellt, Ausgabe trotzdem mit Uhrzeit") - die Liga-Einstellung "Format der Anstoßtermine" (DatF) wurde bisher an keiner Stelle im Frontend gelesen, analog zu den Bugfixes bei ShowLogos/urlT/urlB in derselben Datei. Neue Variable $datumsFormat aus getLigaOptions() gelesen und an beide renderResultsTable()-Aufrufstellen durchgereicht.
 - Changelog: 3.26.0 - Standardwert für ShowSpielfrei (Fallback ohne gespeicherten Wert) auf deaktiviert geändert - siehe admin/view_liga_settings.php 1.21.0 für den vollständigen Hintergrund.
@@ -1470,6 +1496,10 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/RenderViewsTrait.php
 
+- Changelog: 1.39.2 - renderInfoView() übergibt zusätzlich LinkGithub an das Info-Template.
+- Changelog: 1.39.1 - Neues 📝-Symbol in der Ergebnisliste (renderPartieRow()), zeigt den Inhalt von liga_partien.notiz als Hover-Tooltip, sofern vorhanden - bisher wurde dieses Feld (im KO-Formular bisher "Spielort" beschriftet, im Datenmodell aber ein freies Notizfeld) nirgends im Frontend angezeigt.
+- Changelog: 1.39.0 - Die Kreuztabellen-Kopfzeile übergibt jetzt den vollen Teamnamen als Titel an renderTeamLogoImg() (siehe TeamFormattingTrait.php 1.10.0) - zeigt den Mannschaftsnamen als Tooltip beim Hovern über das Wappen, da dort sonst kein begleitender Text sichtbar ist.
+- Changelog: 1.38.0 - KRITISCHER Bugfix (gemeldet: "Hin-/Rückrundentabellen" in den Liga-Einstellungen deaktiviert, Reiter erscheinen im Frontend trotzdem) - die beiden Einstellungen tableHeimAusw/tableHinRueck wurden zwar überall sonst korrekt behandelt (gespeichert, exportiert, importiert, Standardwerte in templates.php), aber beim Rendern der Tabellen-Navigation (renderStandingsModeNav()) nie gelesen - betraf auch "Heim-/Auswärtstabellen", fiel dort nur nicht auf, da die Einstellung zufällig aktiv war. $validModes in renderStandingsTable() jetzt ebenfalls eingeschränkt - verhindert zusätzlich den Zugriff über einen direkt eingegebenen/geteilten Link mit &table=hin, wenn die Einstellung deaktiviert ist. Betrifft beide Tabellen-Rendering-Pfade (reguläre Tabelle und die sportartspezifische Tabelle für Volleyball & Co.).
 - Changelog: 1.37.0 - renderPartieRow()/renderResultsTable() bekommen zwei neue Parameter $homepageTarget/$berichtTarget, nutzen TeamFormattingTrait::linkTargetAttr() für den Spielbericht-Link (siehe TeamFormattingTrait.php 1.7.0).
 - Changelog: 1.36.0 - renderPartieRow()/renderResultsTable()/renderTeamScheduleView() bekommen/nutzen jetzt einen $dateFormat-Parameter und reichen ihn an partieZeitDisplay() durch (siehe TeamFormattingTrait.php 1.6.0) - setzt damit tatsächlich die Liga-Einstellung DatF um, die zuvor an keiner Stelle gelesen wurde.
 - Changelog: 1.35.0 - Fortsetzung der nameTor-Korrektur aus 1.33.0/1.34.0 - galt bisher nur für die Tabellenansicht, die Ligastatistik-Seite zeigte an sechs Stellen weiterhin "Tore"/"Tore/Spiel"/"Tore ges."/"Heim-Tore"/"Auswärts-Tore"/"Die meisten Tore" fest. Neue Hilfsfunktion substituteToreWord() ersetzt das Wort "Tore" in einem übersetzten Label durch den liga-eigenen Ersatztext (nameTor) - funktioniert für jedes Label, das "Tore" als eigenständiges Wort enthält, ohne jede Stelle einzeln per eigenem Lang-Key nachzupflegen. renderTeamStatBox()/renderOverallStatsBlock() bekommen dafür einen neuen optionalen Parameter $toreLabel, renderLigastatistikView() ermittelt ihn einmal und reicht ihn an alle vier Aufrufstellen durch.
@@ -1514,6 +1544,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/SpieltagRepositoryTrait.php
 
+- Changelog: 1.8.1 - Beitrag: Nutzeranfrage - p.notiz zur SELECT-Liste von getSpieltagPartien() ergänzt. War bisher gar nicht erst für das Frontend verfügbar.
 - Changelog: 1.8.0 - KRITISCHER Bugfix (gemeldet: eine unter "Link zum Spielbericht" eingetragene URL wird auf der Ergebnisseite nirgends angezeigt, obwohl die Liga-Einstellung "Spielberichte verlinken" aktiv ist; dieselbe Frage auch zu Mannschafts-Homepages) - getSpieltagPartien() selektierte bericht_url sowie die Team-Homepage-URL (teams_global.url) bisher überhaupt nicht, obwohl beide Spalten in der Datenbank existieren. Jetzt zusätzlich in der SELECT-Liste: p.bericht_url sowie th.url AS heim_url, tg.url AS gast_url.
 - Changelog: 1.7.0 - getSpieltagPartien() liest jetzt zusätzlich gt_grund, mit derselben defensiven Spalten-Prüfung wie bei gt_entscheidung/status/extra_data (für noch nicht migrierte Installationen).
 - Changelog: 1.6.0 - getSpieltagPartien() sortiert Spiele eines Spieltags jetzt primär chronologisch nach Anstoßzeit (p.zeit, älteste zuerst, Spiele ohne Zeit rutschen ans Ende statt an den Anfang) statt nach der bisherigen rein technischen spiel_nr-Reihenfolge (Anlege-/Import-Reihenfolge) - diese bleibt als Tie-Breaker bei gleicher/fehlender Zeit erhalten, für eine stabile Reihenfolge.
@@ -1552,6 +1583,11 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/TeamFormattingTrait.php
 
+- Changelog: 1.12.0 - Beitrag: Nutzeranfrage - neues assets/img/freilos.svg (weiße Flagge, Platzhalter-Symbol) wird bei aktivierten Mannschaftslogos jetzt anstelle eines Teamwappens gezeigt, wenn die jeweilige Seite ein Freilos ist. Neue gemeinsame Hilfsfunktion resolveSideLogoHtml(), genutzt von partieTeamNameWithLogo()/-Reversed() - wirkt dadurch automatisch überall, wo diese beiden Funktionen bereits verwendet werden (Ergebnisse, KO-Finalrunden-Gruppierung, Team-Spielplan).
+- Changelog: 1.11.0 - partieTeamName() übersetzt den Freilos-Marker (KO_FREILOS_MARKER) jetzt zentral in den sichtbaren Text "Freilos" (tf('liga_freilos_label')) - gilt automatisch für jede Ausgabestelle (Ergebnisse, Spielplan, Kreuztabelle), ohne dass jede einzelne Stelle das selbst prüfen müsste. Dafür partieIsEmptyPlaceholder()/partieHasEmptySide() auf eine neue, gemeinsame Hilfsfunktion partieSideIsEmptyRaw() umgestellt, die bewusst auf dem ROHEN Label statt dem (jetzt übersetzten) Anzeigenamen prüft - sonst hätte die neue Übersetzung das Ausblenden leerer Begegnungen auf der Ergebnisseite (siehe vorheriger Changelog-Eintrag) wieder außer Kraft gesetzt, da "Freilos" als Text ja nicht mehr leer aussieht.
+- Changelog: 1.10.1 - Neue Funktion partieHasEmptySide() (Beitrag: Nutzeranfrage - Freilose bei KO-Turnieren sollen auf der Ergebnisliste nicht angezeigt werden). Anders als partieIsEmptyPlaceholder() (verlangt BEIDE Seiten leer) reicht hier bereits EINE leere Seite.
+- Changelog: 1.10.0 - renderTeamLogoImg()/renderTeamLogoImgWrapped() bekommen einen neuen optionalen Parameter $title, füllt sowohl title (Tooltip beim Hovern) als auch alt (Bildbeschreibung). Leer (Standard) bedeutet unverändertes bisheriges Verhalten.
+- Changelog: 1.9.0 - linkTargetAttr() unterstützt jetzt auch '_top' - wie bei '_self' kein rel="noopener" nötig, da kein neuer Browsing-Context geöffnet wird.
 - Changelog: 1.8.0 - partieZeitDisplay() übersetzt Wochentags-/Monatsnamen im formatierten Datum jetzt in die aktuelle Seitensprache (neue Funktion localizeDateOutput()). PHP date()/DateTime::format() geben "l"/"D"/"F"/"M" immer auf Englisch aus, unabhängig von der Seitensprache - ersetzt gezielt den für das jeweilige Datum berechneten englischen Wert durch die Übersetzung aus den vorhandenen liga_weekday_*/liga_month_*-Schlüsseln, robust gegenüber beliebigen Formatstring-Kombinationen. Bei Englisch als Seitensprache bleibt die Ausgabe unverändert.
 - Changelog: 1.7.0 - partieTeamNameWithLogo()/partieTeamNameWithLogoReversed() bekommen einen neuen Parameter $linkTarget ('_blank'/'_self'). Neue zentrale Hilfsfunktion linkTargetAttr() baut das target-/rel-Attribut-Fragment - gemeinsam genutzt mit dem Spielbericht-Link in RenderViewsTrait::renderPartieRow().
 - Changelog: 1.6.0 - KRITISCHER Bugfix ("d.m.Y ohne Uhrzeit in den Einstellungen eingestellt, Ausgabe trotzdem mit Uhrzeit") - partieZeitDisplay() hatte das Anzeigeformat fest auf "d.m.Y H:i" verdrahtet und die Liga-Einstellung "Format der Anstoßtermine" (DatF) nie gelesen. Neuer optionaler Parameter $dateFormat (Default weiterhin "d.m.Y H:i" für volle Rückwärtskompatibilität ohne explizite Angabe).
@@ -1635,6 +1671,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## template/default/partials/info_view.tpl.php
 
+- Changelog: 1.2.1 - Link zu GitHub ergänzt ([ Homepage | Forum | GitHub ]).
 - Changelog: 1.2.0 - Links zu Homepage + Forum ergänzt
 - Changelog: 1.1.0 - Projektname auf "LMOnext" umgestellt (vorher "OLVBoard")
 
@@ -2053,6 +2090,10 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 - Changelog: ENTFERNT - diese Datei wurde gelöscht, der Ticker ist als eigenständiges Addon "ticker" ausgegliedert (siehe CHANGELOG-Einträge zu src/Liga/RenderViewsTrait.php 1.24.0 und frontend/data_liga.php 3.5.0). Die Markup-Struktur lebt jetzt (leicht angepasst, als PHP-String statt Platzhalter-Template) in addon/ticker/TickerRenderer.php.
 - Changelog: 2.0.0 - Komplett umgebaut für echtes CSS-Marquee-Scrollen statt eines statischen Texts: neue Viewport/Track-Struktur, Text zweimal hintereinander für nahtlosen Loop (siehe Kommentar in der Datei sowie src/Liga/RenderViewsTrait.php 1.23.0 für den PHP-seitigen Hintergrund).
 - Changelog: 1.0.0 - Neues Partial (KRITISCHER Bugfix): rendert den Liga-Ticker-Hinweis oberhalb der Tab-Leiste, siehe RenderViewsTrait::renderTickerBlock() für den vollständigen Hintergrund (Admin-Speicherung existierte, Frontend-Anzeige fehlte komplett).
+
+## template/matchday/partials/info_view.tpl.php
+
+- Changelog: 1.0.1 - Link zu GitHub ergänzt ([ Homepage | Forum | GitHub ]), analog zum default-Theme.
 
 ## template/matchday/partials/ticker_block.tpl.php
 

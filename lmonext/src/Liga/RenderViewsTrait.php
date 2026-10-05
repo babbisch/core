@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/RenderViewsTrait.php
- * Fileversion: 1.38.0
+ * Fileversion: 1.39.2
  *
  * PHP version 8.2
  *
@@ -93,6 +93,10 @@ trait RenderViewsTrait
         $berichtIcon = $berichtUrl !== ''
             ? '<a href="' . h($berichtUrl) . '"' . self::linkTargetAttr($berichtTarget) . ' class="bericht-icon" title="' . h(tf('liga_link_spielbericht')) . '">📋</a>'
             : '';
+        $notizText = trim((string)($partie['notiz'] ?? ''));
+        $notizIcon = $notizText !== ''
+            ? '<span class="notiz-icon" title="' . h($notizText) . '">📝</span>'
+            : '';
 
         return renderPartial('partie_row', [
             'Datum'              => $datum,
@@ -108,7 +112,7 @@ trait RenderViewsTrait
             // "teamvergleich" existiert HeadToHeadTrait/self::renderH2hIcon()
             // in dieser Klasse nicht mehr, siehe CHANGELOG.md). Liefert '',
             // wenn das Addon nicht aktiv ist - kein Fehler.
-            'CompareIcon'         => \renderH2hIcon($hId, $gId, $heimRaw, $gastRaw, $showLogos) . $berichtIcon,
+            'CompareIcon'         => \renderH2hIcon($hId, $gId, $heimRaw, $gastRaw, $showLogos) . $berichtIcon . $notizIcon,
         ]);
     }
     /**
@@ -331,6 +335,7 @@ trait RenderViewsTrait
             'Title'     => h(tf('liga_info_title', ['version' => $version])),
             'LinkHomepage' => tf('liga_info_link_homepage'),
             'LinkForum'    => tf('liga_info_link_forum'),
+            'LinkGithub'   => tf('liga_info_link_github'),
             'Text1'     => h(tf('liga_info_text_1')),
             'Text2'     => h(tf('liga_info_text_2')),
             'License'   => h(tf('liga_info_license')),
@@ -1022,7 +1027,7 @@ trait RenderViewsTrait
             // Logo (kein Kürzel-Text mehr) – sonst wie bisher das Kürzel.
             $kurz = $t['kurz'] ?? '';
             $headerLabel = $showLogos
-                ? self::renderTeamLogoImg((int)$t['id'], true)
+                ? self::renderTeamLogoImg((int)$t['id'], true, $t['name'])
                 : h($kurz !== '' ? $kurz : $t['name']);
             $headerCells .= renderPartial('kreuz_header_cell', [
                 'Label'       => $headerLabel,

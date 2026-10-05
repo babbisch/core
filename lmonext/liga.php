@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: liga.php
- * Fileversion: 3.28.0
+ * Fileversion: 3.29.1
  *
  * PHP version 8.2
  *
@@ -95,8 +95,13 @@ $opts         = getLigaOptions($ligaId);
 $flags        = getLigaViewFlags($opts);
 $showLogos    = showTeamLogos($opts);$linkTeamHomepages = ($opts['urlT'] ?? '0') === '1';
 $linkSpielberichte  = ($opts['urlB'] ?? '0') === '1';
-$homepageTarget = ($opts['urlT_target'] ?? 'blank') === 'self' ? '_self' : '_blank';
-$berichtTarget  = ($opts['urlB_target'] ?? 'blank') === 'self' ? '_self' : '_blank';
+$resolveLinkTarget = static fn(string $saved) : string => match ($saved) {
+    'self' => '_self',
+    'top'  => '_top',
+    default => '_blank',
+};
+$homepageTarget = $resolveLinkTarget((string)($opts['urlT_target'] ?? 'blank'));
+$berichtTarget  = $resolveLinkTarget((string)($opts['urlB_target'] ?? 'blank'));
 $datumsFormat = (string)($opts['DatF'] ?? 'd.m.Y H:i');
 $showSpielfrei = ($opts['ShowSpielfrei'] ?? '0') === '1';
 // Globale Einstellung (Admin → Einstellungen → Besucherbereich), gilt für
@@ -281,10 +286,16 @@ switch ($currentView) {
             $_p['_gt_tore_beide_verlieren'] = $gtToreBeideVerlieren;
         }
         unset($_p);
-        // Reine Leer-Begegnungen (kein Team, kein Label auf beiden Seiten – z.B.
-        // Freilos-Auffüllplätze bei KO-Turnieren) werden nicht angezeigt, siehe
-        // partieIsEmptyPlaceholder().
-        $partien     = array_values(array_filter($partien, static fn(array $p) => !partieIsEmptyPlaceholder($p)));
+        // Begegnungen mit mindestens einer leeren Seite (kein Team, kein
+        // Label) werden auf der Ergebnisliste nicht angezeigt - z.B.
+        // Freilose bei KO-Turnieren, wenn ein Bracket größer gewählt wurde
+        // als die tatsächliche Teilnehmerzahl (12 Teams in einem 16er-
+        // Bracket, 4 Plätze bleiben leer). Bugfix: vorher wurde nur eine
+        // Begegnung mit BEIDEN leeren Seiten ausgeblendet
+        // (partieIsEmptyPlaceholder()) - ein Freilos hat aber auf EINER
+        // Seite ein echtes Team, das ohne Gegner dastand und trotzdem
+        // angezeigt wurde. Siehe partieHasEmptySide().
+        $partien     = array_values(array_filter($partien, static fn(array $p) => !partieHasEmptySide($p)));
         $dateRange   = $spieltag !== null ? spieltagDateRange($partien, $spieltag['start'] ?? null) : '';
 
         // ── PDF-Export (reguläre Ligen: "Spieltag N", KO-Turniere: Rundenname

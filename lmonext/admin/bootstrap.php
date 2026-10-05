@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: bootstrap.php
- * Fileversion: 1.31.1
+ * Fileversion: 1.32.1
  *
  * PHP version 8.2
  *
@@ -284,6 +284,33 @@ function getAppVersion() : string
 }
 
 /**
+ * Bereitet eine Versionsangabe für version_compare() vor: ein UNBEKANNTER
+ * Zusatz (z.B. "-C" bei "1.XX.X-C" - eine eigene Kennzeichnung einer
+ * angepassten Installation) wird abgeschnitten, bekannte Vorabversions-
+ * Zusätze (dev, alpha/a, beta/b, rc, pl/p, optional mit Nummer) bleiben
+ * erhalten.
+ *
+ * Hintergrund: version_compare() wertet jeden unbekannten Zusatz als NIEDRIGER
+ * als alle bekannten, "1.XX.X-C" gilt dort also als älter als "1.11.7" - der
+ * Update-Hinweis erschien dadurch, obwohl dieselbe Version läuft. Ein
+ * Zusatz wie "-beta" soll dagegen weiterhin als Vorabversion zählen (wer
+ * 1.12.0-beta einsetzt, soll das fertige 1.12.0 angezeigt bekommen).
+ */
+function normalizeVersionForCompare(string $version) : string
+{
+    $version = trim($version);
+    if (!preg_match('/^(\d+(?:\.\d+)*)(.*)$/s', $version, $m)) {
+        return $version;
+    }
+    $base   = $m[1];
+    $suffix = ltrim($m[2], "-_.+ ");
+    if ($suffix !== '' && preg_match('/^(dev|alpha|beta|rc|pl|a|b|p)(\.?\d+)?(?![A-Za-z])/i', $suffix, $sm)) {
+        return $base . '-' . $sm[1] . ($sm[2] ?? '');
+    }
+    return $base;
+}
+
+/**
  * Prüft, ob unter https://www.liga-manager-online.org/check_version.json
  * eine neuere stabile Version angekündigt ist als die aktuell laufende
  * (composer.json/getAppVersion()) - für den Update-Hinweis in der
@@ -304,7 +331,7 @@ function getAppVersion() : string
  */
 function checkCoreUpdateAvailable() : ?array
 {
-    $cacheFile = sys_get_temp_dir() . '/lmonext_core_update_v1.json';
+    $cacheFile = sys_get_temp_dir() . '/lmonext_core_update_v2.json';
     $ttl       = 86400; // 1 Tag
 
     $raw = is_file($cacheFile) ? @file_get_contents($cacheFile) : false;
@@ -346,7 +373,8 @@ function checkCoreUpdateAvailable() : ?array
             $download = (string)($data['stable']['download'] ?? '');
             $announcement = (string)($data['stable']['announcement'] ?? '');
             $local    = getAppVersion();
-            if ($remote !== '' && $download !== '' && $local !== '' && version_compare($remote, $local, '>')) {
+            if ($remote !== '' && $download !== '' && $local !== ''
+                && version_compare(normalizeVersionForCompare($remote), normalizeVersionForCompare($local), '>')) {
                 $update = ['version' => $remote, 'download' => $download, 'announcement' => $announcement];
             }
         }
@@ -1387,6 +1415,12 @@ const KO_MODUS = [
 ];
 // Standard-KO-Modus bei Neu-Erstellung
 const KO_MODUS_DEFAULT = 1;
+
+// KO_FREILOS_MARKER ist in config_loader.php definiert (BUGFIX: lag
+// ursprünglich hier, aber TeamFormattingTrait::partieTeamName() - das
+// diesen Marker übersetzt - läuft auch im Besucherbereich, der
+// admin/bootstrap.php NIE lädt. config_loader.php wird dagegen von BEIDEN
+// Bootstrap-Dateien geladen, siehe dortiger Kommentar).
 
 // Übersetzte Anzeige-Bezeichnung für einen KO-Modus-Wert (KO_MODUS-Keys bleiben
 // stabile interne Werte, nur das Label wird über t() lokalisiert).

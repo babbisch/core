@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: handler_settings.php
- * Fileversion: 1.18.0
+ * Fileversion: 1.19.0
  *
  * PHP version 8.2
  *
@@ -111,8 +111,9 @@ if ($action === 'save_liga_settings' && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $save('urlT',       isset($_POST['urlT'])       ? '1' : '0');
                 $save('urlB',       isset($_POST['urlB'])       ? '1' : '0');
-                $urlTTarget = ($_POST['urlT_target'] ?? 'blank') === 'self' ? 'self' : 'blank';
-                $urlBTarget = ($_POST['urlB_target'] ?? 'blank') === 'self' ? 'self' : 'blank';
+                $validTargets = ['blank', 'self', 'top'];
+                $urlTTarget = in_array($_POST['urlT_target'] ?? 'blank', $validTargets, true) ? $_POST['urlT_target'] : 'blank';
+                $urlBTarget = in_array($_POST['urlB_target'] ?? 'blank', $validTargets, true) ? $_POST['urlB_target'] : 'blank';
                 $save('urlT_target', $urlTTarget);
                 $save('urlB_target', $urlBTarget);
                 // KO-spezifisch

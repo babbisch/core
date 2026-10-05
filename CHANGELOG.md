@@ -221,6 +221,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/bootstrap.php
 
+- Changelog: 1.32.1 - Update-Prüfung: neue Funktion normalizeVersionForCompare() schneidet einen UNBEKANNTEN Versionszusatz (z.B. "-C" bei "1.11.7-C", eine eigene Kennzeichnung einer angepassten Installation) vor dem Vergleich ab, bekannte Vorabversions-Zusätze (dev, alpha, beta, rc, pl, optional mit Nummer) bleiben erhalten. Hintergrund: version_compare() wertet jeden unbekannten Zusatz als niedriger als alle bekannten - "1.11.7-C" galt dadurch als älter als "1.11.7" und der Update-Hinweis erschien, obwohl dieselbe Version läuft. Cache-Dateiname von lmonext_core_update_v1.json auf v2 geändert, damit ein zuvor gecachtes "Update verfügbar" nicht bis zu 24h nachwirkt.
 - Changelog: 1.32.0 - KO_FREILOS_MARKER-Konstante nach config_loader.php verschoben (Freilos-Funktion für KO-Turniere - siehe dortiger und TeamFormattingTrait.php-Changelog-Eintrag für den vollständigen Hintergrund): lag ursprünglich hier, aber TeamFormattingTrait::partieTeamName() - das diesen Marker übersetzt - läuft auch im Besucherbereich, der admin/bootstrap.php nie lädt. Wäre ohne diese Korrektur beim ersten Aufruf der Ergebnisseite mit einer Freilos-Begegnung zu einem fatalen Fehler ("Undefined constant") gekommen.
 - Changelog: 1.31.1 - KRITISCHER Bugfix (Fehlerlog: "Class LMOnext\Sport\KegelnProfile not found" beim Import einer Kegel-Liga) - die neue Sportart "kegeln" (src/Sport/KegelnProfile.php 1.0.0, in SportRegistry.php 1.1.0 registriert) wurde nicht per require_once eingebunden. LMOnext nutzt kein Autoloading für src/-Klassen, jede neue Profil-Klasse muss hier explizit gelistet sein - das war beim Hinzufügen von Kegeln übersehen worden.
 - Changelog: 1.31.0 - Beitrag: Nutzeranfrage - checkCoreUpdateAvailable() liest jetzt zusätzlich das Feld stable.announcement aus check_version.json (Link zur Forenankündigung, die das Update beschreibt - hilfreicher als der reine Download-Link). Optional/rückwärtskompatibel: leerer String, falls eine ältere check_version.json dieses Feld noch nicht liefert.
@@ -1271,6 +1272,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/frontend/en.php
 
+- Changelog: 1.63.1 - Info text revised to match the German version, new key liga_info_link_github - see lang/frontend/de.php 1.63.1.
 - Changelog: 1.63.0 - New key liga_freilos_label ("Bye"), see lang/frontend/de.php 1.63.0.
 - Changelog: 1.62.0 - Neue Schlüssel liga_weekday_full_1..7 und liga_month_short_1..12, siehe lang/frontend/de.php 1.62.0.
 - Changelog: 1.61.0 - New language key liga_tab_karte ("Map") for the new tab of the team-notizen add-on.
@@ -1493,6 +1495,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/RenderViewsTrait.php
 
+- Changelog: 1.39.2 - renderInfoView() übergibt zusätzlich LinkGithub an das Info-Template.
 - Changelog: 1.39.1 - Neues 📝-Symbol in der Ergebnisliste (renderPartieRow()), zeigt den Inhalt von liga_partien.notiz als Hover-Tooltip, sofern vorhanden - bisher wurde dieses Feld (im KO-Formular bisher "Spielort" beschriftet, im Datenmodell aber ein freies Notizfeld) nirgends im Frontend angezeigt.
 - Changelog: 1.39.0 - Die Kreuztabellen-Kopfzeile übergibt jetzt den vollen Teamnamen als Titel an renderTeamLogoImg() (siehe TeamFormattingTrait.php 1.10.0) - zeigt den Mannschaftsnamen als Tooltip beim Hovern über das Wappen, da dort sonst kein begleitender Text sichtbar ist.
 - Changelog: 1.38.0 - KRITISCHER Bugfix (gemeldet: "Hin-/Rückrundentabellen" in den Liga-Einstellungen deaktiviert, Reiter erscheinen im Frontend trotzdem) - die beiden Einstellungen tableHeimAusw/tableHinRueck wurden zwar überall sonst korrekt behandelt (gespeichert, exportiert, importiert, Standardwerte in templates.php), aber beim Rendern der Tabellen-Navigation (renderStandingsModeNav()) nie gelesen - betraf auch "Heim-/Auswärtstabellen", fiel dort nur nicht auf, da die Einstellung zufällig aktiv war. $validModes in renderStandingsTable() jetzt ebenfalls eingeschränkt - verhindert zusätzlich den Zugriff über einen direkt eingegebenen/geteilten Link mit &table=hin, wenn die Einstellung deaktiviert ist. Betrifft beide Tabellen-Rendering-Pfade (reguläre Tabelle und die sportartspezifische Tabelle für Volleyball & Co.).
@@ -1579,7 +1582,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/TeamFormattingTrait.php
 
-- Changelog: 1.12.0 - Beitrag: Nutzeranfrage - neues assets/img/draw_a_bye.svg (weiße Flagge, Platzhalter-Symbol) wird bei aktivierten Mannschaftslogos jetzt anstelle eines Teamwappens gezeigt, wenn die jeweilige Seite ein Freilos ist. Neue gemeinsame Hilfsfunktion resolveSideLogoHtml(), genutzt von partieTeamNameWithLogo()/-Reversed() - wirkt dadurch automatisch überall, wo diese beiden Funktionen bereits verwendet werden (Ergebnisse, KO-Finalrunden-Gruppierung, Team-Spielplan).
+- Changelog: 1.12.0 - Beitrag: Nutzeranfrage - neues assets/img/freilos.svg (weiße Flagge, Platzhalter-Symbol) wird bei aktivierten Mannschaftslogos jetzt anstelle eines Teamwappens gezeigt, wenn die jeweilige Seite ein Freilos ist. Neue gemeinsame Hilfsfunktion resolveSideLogoHtml(), genutzt von partieTeamNameWithLogo()/-Reversed() - wirkt dadurch automatisch überall, wo diese beiden Funktionen bereits verwendet werden (Ergebnisse, KO-Finalrunden-Gruppierung, Team-Spielplan).
 - Changelog: 1.11.0 - partieTeamName() übersetzt den Freilos-Marker (KO_FREILOS_MARKER) jetzt zentral in den sichtbaren Text "Freilos" (tf('liga_freilos_label')) - gilt automatisch für jede Ausgabestelle (Ergebnisse, Spielplan, Kreuztabelle), ohne dass jede einzelne Stelle das selbst prüfen müsste. Dafür partieIsEmptyPlaceholder()/partieHasEmptySide() auf eine neue, gemeinsame Hilfsfunktion partieSideIsEmptyRaw() umgestellt, die bewusst auf dem ROHEN Label statt dem (jetzt übersetzten) Anzeigenamen prüft - sonst hätte die neue Übersetzung das Ausblenden leerer Begegnungen auf der Ergebnisseite (siehe vorheriger Changelog-Eintrag) wieder außer Kraft gesetzt, da "Freilos" als Text ja nicht mehr leer aussieht.
 - Changelog: 1.10.1 - Neue Funktion partieHasEmptySide() (Beitrag: Nutzeranfrage - Freilose bei KO-Turnieren sollen auf der Ergebnisliste nicht angezeigt werden). Anders als partieIsEmptyPlaceholder() (verlangt BEIDE Seiten leer) reicht hier bereits EINE leere Seite.
 - Changelog: 1.10.0 - renderTeamLogoImg()/renderTeamLogoImgWrapped() bekommen einen neuen optionalen Parameter $title, füllt sowohl title (Tooltip beim Hovern) als auch alt (Bildbeschreibung). Leer (Standard) bedeutet unverändertes bisheriges Verhalten.
@@ -1667,6 +1670,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## template/default/partials/info_view.tpl.php
 
+- Changelog: 1.2.1 - Link zu GitHub ergänzt ([ Homepage | Forum | GitHub ]).
 - Changelog: 1.2.0 - Links zu Homepage + Forum ergänzt
 - Changelog: 1.1.0 - Projektname auf "LMOnext" umgestellt (vorher "OLVBoard")
 
@@ -2085,6 +2089,10 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 - Changelog: ENTFERNT - diese Datei wurde gelöscht, der Ticker ist als eigenständiges Addon "ticker" ausgegliedert (siehe CHANGELOG-Einträge zu src/Liga/RenderViewsTrait.php 1.24.0 und frontend/data_liga.php 3.5.0). Die Markup-Struktur lebt jetzt (leicht angepasst, als PHP-String statt Platzhalter-Template) in addon/ticker/TickerRenderer.php.
 - Changelog: 2.0.0 - Komplett umgebaut für echtes CSS-Marquee-Scrollen statt eines statischen Texts: neue Viewport/Track-Struktur, Text zweimal hintereinander für nahtlosen Loop (siehe Kommentar in der Datei sowie src/Liga/RenderViewsTrait.php 1.23.0 für den PHP-seitigen Hintergrund).
 - Changelog: 1.0.0 - Neues Partial (KRITISCHER Bugfix): rendert den Liga-Ticker-Hinweis oberhalb der Tab-Leiste, siehe RenderViewsTrait::renderTickerBlock() für den vollständigen Hintergrund (Admin-Speicherung existierte, Frontend-Anzeige fehlte komplett).
+
+## template/matchday/partials/info_view.tpl.php
+
+- Changelog: 1.0.1 - Link zu GitHub ergänzt ([ Homepage | Forum | GitHub ]), analog zum default-Theme.
 
 ## template/matchday/partials/ticker_block.tpl.php
 

@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: src/Liga/RenderViewsTrait.php
- * Fileversion: 1.39.1
+ * Fileversion: 1.39.2
  *
  * PHP version 8.2
  *
@@ -335,6 +335,7 @@ trait RenderViewsTrait
             'Title'     => h(tf('liga_info_title', ['version' => $version])),
             'LinkHomepage' => tf('liga_info_link_homepage'),
             'LinkForum'    => tf('liga_info_link_forum'),
+            'LinkGithub'   => tf('liga_info_link_github'),
             'Text1'     => h(tf('liga_info_text_1')),
             'Text2'     => h(tf('liga_info_text_2')),
             'License'   => h(tf('liga_info_license')),

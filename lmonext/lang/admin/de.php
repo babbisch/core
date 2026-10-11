@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: lang/admin/de.php
- * Fileversion: 1.58.0
+ * Fileversion: 1.58.3
  *
  * PHP version 8.2
  *
@@ -293,6 +293,11 @@ return [
     'teams_field_kurz'           => 'Kürzel',
     'teams_field_url'            => 'Vereins-/Team-Website',
     'teams_field_logo'           => 'Logo',
+    'teams_letter_all'           => 'Alle',
+    'teams_field_typ'            => 'Typ',
+    'teams_typ_team'             => 'Team',
+    'teams_typ_freilos'          => 'Freilos',
+    'teams_typ_freilos_hint'     => 'Freilos = Platzhalter-Team für KO-Turniere mit weniger Teams; wird z.B. in der Ewigen Tabelle ausgeblendet.',
     'teams_logo_remove'          => 'Logo entfernen',
     'teams_logo_hint'            => 'SVG, JPG, PNG oder GIF, mindestens 50px hoch.',
     'teams_col_logo'             => 'Logo',
@@ -334,6 +339,7 @@ return [
     'sp_status_nv'                   => 'n.V. (nach Verlängerung)',
     'sp_placeholder_venue'           => '📝 Notiz zum Spiel',
     'sp_placeholder_report_link'     => '🔗 Link zum Spielbericht (optional)',
+    'sp_title_report_link'           => 'Absolute URL (https://…) oder relativer Pfad, z.B. berichte/spiel12.html oder /berichte/spiel12.html',
     'sp_placeholder_gt_grund'        => '📝 Zusätzliche Informationen zur Sportgericht-Entscheidung (optional)',
     'sp_label_saetze'                => 'Sätze',
     'sp_btn_satz_add'                => 'Weiteren Satz hinzufügen',

@@ -2,7 +2,7 @@
 /**
  * Project: LMOnext
  * Filename: view_teams.php
- * Fileversion: 1.7.1
+ * Fileversion: 1.9.0
  *
  * PHP version 8.2
  *
@@ -15,6 +15,29 @@
 $teams     = $teamsData['teams']      ?? [];
 $dupIds    = $teamsData['dup_ids']    ?? [];
 $dupCount  = count($dupIds);
+
+// Anfangszeichen-Index (A-Z, 0-9, # für alles andere) für die Buchstaben-Leiste.
+// Umlaute/Akzente werden auf den Grundbuchstaben abgebildet (Ä->A, É->E ...).
+$teamFirstChar = static function (string $name) : string {
+    $name = ltrim($name);
+    if ($name === '') { return '#'; }
+    $c = mb_strtoupper(mb_substr($name, 0, 1, 'UTF-8'), 'UTF-8');
+    if (class_exists('Normalizer')) {
+        $d = Normalizer::normalize($c, Normalizer::FORM_D);
+        if (is_string($d) && $d !== '') { $c = mb_substr($d, 0, 1, 'UTF-8'); }
+    } else {
+        $c = strtr($c, ['Ä' => 'A', 'Ö' => 'O', 'Ü' => 'U', 'É' => 'E', 'È' => 'E', 'Á' => 'A', 'À' => 'A', 'Ç' => 'C']);
+    }
+    return preg_match('/^[A-Z0-9]$/', $c) ? $c : '#';
+};
+$firstCounts = [];
+foreach ($teams as $tIdx) {
+    $k = $teamFirstChar((string)$tIdx['name']);
+    $firstCounts[$k] = ($firstCounts[$k] ?? 0) + 1;
+}
+ksort($firstCounts, SORT_STRING);
+// '#' ans Ende
+if (isset($firstCounts['#'])) { $hash = $firstCounts['#']; unset($firstCounts['#']); $firstCounts['#'] = $hash; }
 ?>
       <!-- Filter + Suche -->
       <div class="card" style="margin-bottom:12px">
@@ -35,6 +58,21 @@ $dupCount  = count($dupIds);
           </span>
         </div>
       </div>
+
+      <!-- Anfangsbuchstaben-Leiste (nur Zeichen, mit denen Teams beginnen) -->
+      <?php if (count($firstCounts) > 1) { ?>
+      <div class="card" id="team-letterbar" style="margin-bottom:12px;padding:8px 12px">
+        <div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+          <button type="button" class="btn btn-sm btn-muted" data-letter="" onclick="setTeamLetter('')"
+                  style="min-width:44px"><?= h(t('teams_letter_all')) ?></button>
+          <?php foreach ($firstCounts as $ch => $cnt) { ?>
+          <button type="button" class="btn btn-sm btn-muted" data-letter="<?= h((string)$ch) ?>"
+                  title="<?= (int)$cnt ?>" onclick="setTeamLetter(<?= h(json_encode((string)$ch)) ?>)"
+                  style="min-width:32px;padding-left:6px;padding-right:6px"><?= h((string)$ch) ?></button>
+          <?php } ?>
+        </div>
+      </div>
+      <?php } ?>
 
       <?php if ($dupCount > 0) { ?>
       <div style="background:#f59e0b18;border:1px solid #f59e0b44;border-radius:var(--radius);
@@ -72,6 +110,7 @@ foreach ($teams as $t) {
                 data-kurz="<?= h(strtolower($t['kurz'])) ?>"
                 data-ligen="<?= (int)$t['liga_count'] ?>"
                 data-dup="<?= $isDup ? '1' : '0' ?>"
+                data-first="<?= h($teamFirstChar((string)$t['name'])) ?>"
                 style="<?= $rowBg ?>">
               <td class="text-muted" style="font-size:.8rem"><?= (int)$t['id'] ?></td>
               <td>
@@ -80,6 +119,10 @@ foreach ($teams as $t) {
               </td>
               <td>
                 <span class="team-disp-name" style="font-weight:500"><?= h($t['name']) ?></span>
+                <?php if (!empty($t['is_freilos'])) { ?>
+                <span class="chip" title="<?= h(t('teams_typ_freilos_hint')) ?>"
+                      style="font-size:.68rem;margin-left:4px;background:var(--surface2);color:var(--muted)"><?= h(t('teams_typ_freilos')) ?></span>
+                <?php } ?>
                 <?php if (!empty($t['url'])) { ?>
                 <a href="<?= h($t['url']) ?>" target="_blank" rel="noopener" title="<?= h($t['url']) ?>"
                    style="margin-left:4px;text-decoration:none">🔗</a>
@@ -108,7 +151,7 @@ foreach ($teams as $t) {
               </td>
               <td style="white-space:nowrap">
                 <button class="btn btn-muted btn-sm"
-                        onclick="openGlobalEdit(<?= $t['id'] ?>, <?= h(json_encode($t['name'])) ?>, <?= h(json_encode($t['mittel'])) ?>, <?= h(json_encode($t['kurz'])) ?>, <?= h(json_encode($t['url'] ?? '')) ?>)">✏️</button>
+                        onclick="openGlobalEdit(<?= $t['id'] ?>, <?= h(json_encode($t['name'])) ?>, <?= h(json_encode($t['mittel'])) ?>, <?= h(json_encode($t['kurz'])) ?>, <?= h(json_encode($t['url'] ?? '')) ?>, <?= !empty($t['is_freilos']) ? 1 : 0 ?>)">✏️</button>
                 <button class="btn btn-muted btn-sm" style="position:relative"
                         title="<?= h(t('teams_btn_links')) ?>"
                         onclick="openLinkModal(<?= $t['id'] ?>, <?= h(json_encode($t['name'])) ?>)">🔗<?php if ((int)($t['link_count'] ?? 0) > 0) { ?><span
@@ -157,6 +200,15 @@ foreach ($teams as $t) {
                     <input type="text" name="team_url" id="ge-url-<?= $t['id'] ?>" placeholder="https://…"
                            style="background:var(--bg);border:1px solid var(--border);color:var(--text);
                                   border-radius:var(--radius);padding:5px 10px;font-size:.87rem;width:220px">
+                  </div>
+                  <div>
+                    <label style="font-size:.73rem;color:var(--muted);display:block;margin-bottom:2px"><?= h(t('teams_field_typ')) ?></label>
+                    <select name="team_typ" id="ge-typ-<?= $t['id'] ?>" title="<?= h(t('teams_typ_freilos_hint')) ?>"
+                            style="background:var(--bg);border:1px solid var(--border);color:var(--text);
+                                   border-radius:var(--radius);padding:5px 10px;font-size:.87rem">
+                      <option value="team"><?= h(t('teams_typ_team')) ?></option>
+                      <option value="freilos"><?= h(t('teams_typ_freilos')) ?></option>
+                    </select>
                   </div>
                   <div>
                     <label style="font-size:.73rem;color:var(--muted);display:block;margin-bottom:2px"><?= h(t('teams_field_logo')) ?></label>
@@ -336,12 +388,13 @@ const i18nTeams = {
 };
 
 // ── Inline-Edit ───────────────────────────────────────────────────────────────
-function openGlobalEdit(id, name, mittel, kurz, url) {
+function openGlobalEdit(id, name, mittel, kurz, url, isFreilos) {
   document.querySelectorAll('[id^="edit-"]').forEach(r => r.style.display = 'none');
   document.getElementById('ge-name-'   + id).value = name;
   document.getElementById('ge-mittel-' + id).value = mittel;
   document.getElementById('ge-kurz-'   + id).value = kurz;
   document.getElementById('ge-url-'    + id).value = url || '';
+  document.getElementById('ge-typ-'    + id).value = isFreilos ? 'freilos' : 'team';
   document.getElementById('edit-' + id).style.display = '';
   document.getElementById('ge-name-' + id).focus();
 }
@@ -627,7 +680,8 @@ function filterTeams(q) {
     const isDup  = row.dataset.dup === '1';
     const matchQ = !q || fuzzyMatch(q, name + ' ' + mittel + ' ' + kurz);
     const matchD = !showDupsOnly || isDup;
-    const show   = matchQ && matchD;
+    const matchL = !activeTeamLetter || (row.dataset.first ?? '') === activeTeamLetter;
+    const show   = matchQ && matchD && matchL;
     row.style.display = show ? '' : 'none';
     const editRow = document.getElementById('edit-' + row.dataset.id);
     if (editRow && !show) editRow.style.display = 'none';
@@ -635,6 +689,18 @@ function filterTeams(q) {
   });
   const cnt = document.getElementById('team-count');
   if (cnt) cnt.textContent = i18nTeams.countTpl.replace('{n}', visible);
+}
+
+let activeTeamLetter = '';
+function setTeamLetter(letter) {
+  // erneuter Klick auf den aktiven Buchstaben hebt die Auswahl auf
+  activeTeamLetter = (letter && letter === activeTeamLetter) ? '' : letter;
+  document.querySelectorAll('#team-letterbar [data-letter]').forEach(b => {
+    const on = (b.dataset.letter === activeTeamLetter);
+    b.style.background  = on ? 'var(--accent)' : '';
+    b.style.color       = on ? '#fff' : '';
+  });
+  filterTeams(document.getElementById('team-filter')?.value ?? '');
 }
 
 function toggleDupsOnly() {

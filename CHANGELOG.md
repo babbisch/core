@@ -221,6 +221,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/bootstrap.php
 
+- Changelog: 1.32.2 - Neue Funktion ensureTeamFreilosSchema(): legt die Spalte teams_global.is_freilos (TINYINT, Standard 0) bei Bestandsinstallationen automatisch an.
 - Changelog: 1.32.1 - Update-Prüfung: neue Funktion normalizeVersionForCompare() schneidet einen UNBEKANNTEN Versionszusatz (z.B. "-C" bei "1.11.7-C", eine eigene Kennzeichnung einer angepassten Installation) vor dem Vergleich ab, bekannte Vorabversions-Zusätze (dev, alpha, beta, rc, pl, optional mit Nummer) bleiben erhalten. Hintergrund: version_compare() wertet jeden unbekannten Zusatz als niedriger als alle bekannten - "1.11.7-C" galt dadurch als älter als "1.11.7" und der Update-Hinweis erschien, obwohl dieselbe Version läuft. Cache-Dateiname von lmonext_core_update_v1.json auf v2 geändert, damit ein zuvor gecachtes "Update verfügbar" nicht bis zu 24h nachwirkt.
 - Changelog: 1.32.0 - KO_FREILOS_MARKER-Konstante nach config_loader.php verschoben (Freilos-Funktion für KO-Turniere - siehe dortiger und TeamFormattingTrait.php-Changelog-Eintrag für den vollständigen Hintergrund): lag ursprünglich hier, aber TeamFormattingTrait::partieTeamName() - das diesen Marker übersetzt - läuft auch im Besucherbereich, der admin/bootstrap.php nie lädt. Wäre ohne diese Korrektur beim ersten Aufruf der Ergebnisseite mit einer Freilos-Begegnung zu einem fatalen Fehler ("Undefined constant") gekommen.
 - Changelog: 1.31.1 - KRITISCHER Bugfix (Fehlerlog: "Class LMOnext\Sport\KegelnProfile not found" beim Import einer Kegel-Liga) - die neue Sportart "kegeln" (src/Sport/KegelnProfile.php 1.0.0, in SportRegistry.php 1.1.0 registriert) wurde nicht per require_once eingebunden. LMOnext nutzt kein Autoloading für src/-Klassen, jede neue Profil-Klasse muss hier explizit gelistet sein - das war beim Hinzufügen von Kegeln übersehen worden.
@@ -274,6 +275,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/data_loader.php
 
+- Changelog: 1.17.2 - Teams-Seite: lädt zusätzlich teams_global.is_freilos und stellt die Spalte bei Bedarf per ensureTeamFreilosSchema() sicher.
 - Changelog: 1.17.1 - Das Laden der Ticker-Optionen (ticker/tickertext) für die Spieltag-Ansicht entfernt - einziger Verbraucher war der oben genannte, jetzt entfernte Ticker-Block in view_spieltag.php (1.12.1).
 - Changelog: 1.17.0 - KRITISCHER Bugfix (gemeldet: bei einem KO-Turnier mit Freilos-Plätzen verschwindet das Team mit Freilos aus der Team-Auswahl der nächsten Runde, sobald andere Paarungen der Vorrunde bereits ausgewertet sind) - die "Sieger der Vorrunde"-Abfrage (prevWinners) schloss eine Begegnung mit einer NULL-Seite bisher komplett aus (WHERE heim_id IS NOT NULL AND gast_id IS NOT NULL) - genau das ist aber ein Freilos. Die Abfrage erkennt Freilos-Paarungen (KO_FREILOS_MARKER) jetzt zusätzlich und nimmt das verbliebene Team automatisch als Sieger auf, ohne dass überhaupt ein Ergebnis eingetragen sein muss.
 - Changelog: 1.16.0 - Bugfix (Fehlerlog: 3x "Trying to access array offset on false" in view_liga_spieltage.php): ruft man liga_spieltage mit der ID einer nicht (mehr) existierenden Liga auf (gelöscht oder veralteter Link), lieferte fetch() false, $ligaDetail war durch die übrigen Schlüssel aber trotzdem "wahr" und die Ansicht griff auf false['id'] zu. Jetzt Meldung "Liga nicht gefunden" (vorhandener Schlüssel ls_liga_not_found) und Rücksprung zur Übersicht.
@@ -368,6 +370,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/handler_liga.php
 
+- Changelog: 1.14.2 - team_search: liefert is_freilos mit und sortiert Freilos-Teams ans Ende der Trefferliste (bleiben auswählbar, da für KO-Turniere nötig).
+- Changelog: 1.14.1 - save_global_team: speichert das neue Kennzeichen is_freilos (Auswahl "Typ" Team/Freilos).
 - Changelog: 1.14.0 - KRITISCHER Bugfix, gefunden beim Ergänzen von gt_grund: die Validierung "$gt > 2" an beiden Speicherstellen (auch der tatsächlich vom Formular verwendeten save_partie_teams) stammte noch von vor der Einführung der Grüne-Tisch-Option 3 ("beide Mannschaften verlieren", siehe StandingsTrait.php 1.12.0) und hätte diese IMMER still auf 0 zurückgesetzt - nie tatsächlich gespeichert. Jetzt auf "$gt > 3" korrigiert. Außerdem: speichert jetzt zusätzlich gt_grund an beiden Stellen.
 - Changelog: 1.13.0 - KRITISCHER Bugfix (Grüne-Tisch-Entscheidung wurde nach dem Speichern immer wieder auf "–" zurückgesetzt, in der Besucheransicht erschien nichts): die Änderung in 1.11.0 hatte den falschen Handler erweitert - save_ergebnisse existiert zwar noch im Code, wird aber von KEINEM Formular mehr aufgerufen (toter Code). Das tatsächlich von view_spieltag.php genutzte Formular (reguläre Liga-Ansicht mit Team-Auswahl-Dropdowns) sendet an "save_partie_teams" - dessen UPDATE-Statement enthielt weder status, noch bericht_url, noch gt_entscheidung. Alle drei jetzt ergänzt (status/bericht_url fehlten bereits vor der Grüne-Tisch-Entscheidung und wurden bei der Gelegenheit gleich mit behoben - betraf vermutlich auch "nach Verlängerung"/"im Elfmeterschießen" und den Spielbericht-Link, nur bisher nicht gemeldet).
 - Changelog: 1.12.0 - Neuer Hook-Punkt "liga.deleted" an der Stelle ergänzt, an der eine Liga tatsächlich gelöscht wird - gefunden bei der Integrationsprüfung eines Drittanbieter-Addons (liga-notizen), das sich bereits auf dieses Event verließ, obwohl es zuvor im Core gar nicht existierte (analog zu "team.deleted" in 1.10.0). Erlaubt Addons, eigene, an die Liga gebundene Daten zu bereinigen, statt verwaist in der Datenbank zurückzubleiben. Bewusst ERST NACH dem commit() der Transaktion gefeuert (dieser Löschvorgang läuft bereits in einer eigenen Transaktion, um verwaiste Zeilen in liga_options/liga_teams/liga_team_values/liga_spieltage/liga_partien zu vermeiden), damit ein Rollback nicht fälschlich schon Aufräumarbeiten eines Addon-Hooks auslöst.
@@ -550,6 +554,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/view_liga_settings.php
 
+- Changelog: 1.24.1 - Team-Suche (Datenbank): Freilos-Teams werden in der Trefferliste mit "Freilos" markiert.
 - Changelog: 1.24.0 - Beitrag: Nutzeranfrage - dritte Option "Im obersten Fenster öffnen (aus iframes ausbrechen)" (target="_top") neben den beiden bestehenden bei der Linkziel-Auswahl für Mannschafts-Homepages/Spielberichte.
 - Changelog: 1.23.0 - Beitrag: Nutzeranfrage - neue Auswahl "Neues Fenster"/"Gleiches Fenster" neben "Mannschafts-Homepages verlinken" und "Spielberichte verlinken" (urlT_target/urlB_target), jeweils separat wählbar.
 - Changelog: 1.22.0 - Beitrag: Nutzeranfrage - "Kegeln" erscheint jetzt automatisch in der Sportart-Auswahl (nutzt bereits SportRegistry::all(), keine eigene Änderung an der Dropdown-Liste nötig). Nebenbei: die "keine Unentschieden"-Anzeige war bisher an einer festen Liste ['football','handball'] festgemacht, die bei jeder neuen Sportart hätte erneut gepflegt werden müssen - jetzt dynamisch aus SportProfile::supportsDraws() aller registrierten Sportarten gebaut (auch der JavaScript-Teil beim Umschalten des Dropdowns), bleibt dadurch automatisch korrekt für künftige Sportarten.
@@ -625,6 +630,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/view_spieltag.php
 
+- Changelog: 1.12.2 - Eingabefelder "Link zum Spielbericht" von type="url" auf type="text" inputmode="url" umgestellt: der Browser ließ bei type="url" nur absolute URLs mit Schema zu und blockierte schon beim Absenden des Formulars alles Relative. inputmode="url" behält die URL-Tastatur auf Mobilgeräten. Neuer Tooltip (title) erklärt die erlaubten Formen.
 - Changelog: 1.12.1 - Bugfix (von Torsten gemeldet: bei deaktiviertem Addon "ticker" erschien in KO-Ligen unter "Ergebnisse eintragen" weiterhin der Block "Spieltags-unabhängige Einstellungen" mit Ticker anzeigen/Tickertext/Ticker speichern) - der Block war fest im Core verdrahtet und nicht an das Addon gekoppelt, anders als die Ticker-Einstellungen in den Liga-Einstellungen (dort bereits an isEnabled('ticker') gebunden). Block entfernt - der Ticker wird jetzt ausschließlich unter Einstellungen > Anzeigen/Darstellung konfiguriert, und nur bei aktiviertem Addon.
 - Changelog: 1.12.0 - koTogglePicker()/koPickerHtml() auf den neuen 3-Stufen-Zyklus Team → Platzhalter → Freilos → Team erweitert (siehe admin/handler_ko.php 1.4.0 für den PHP-seitigen Hintergrund). Räumt dabei sorgfältig die name-Attribute der beteiligten Formularfelder um, damit nie zwei Felder gleichzeitig denselben Namen tragen (sonst im POST mehrdeutig, abhängig von der DOM-Reihenfolge).
 - Changelog: 1.11.0 - Neuer Hook-Punkt admin.spieltag_partie_row - direkt unter dem "Link zum Spielbericht"-Feld jeder Begegnung, liefert partie_id/liga_id/heim_id/gast_id. Erlaubt Addons (z.B. player-pro: Spielbericht mit Aufstellung/Wechseln/Karten/Toren pro Begegnung), sich dort mit einem eigenen Link einzuklinken, ohne dass der Core das jeweilige Addon kennen muss - analog zu liga.view_render bei liga.php. Betrifft nur die reguläre (Nicht-KO-) Ergebnistabelle.
@@ -654,6 +660,8 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## admin/view_teams.php
 
+- Changelog: 1.9.0 - Neue Anfangsbuchstaben-Leiste (0-9, A-Z, #) über der Teamliste: zeigt nur Zeichen, mit denen mindestens ein Team beginnt (Umlaute/Akzente auf den Grundbuchstaben abgebildet); Klick filtert die Liste, erneuter Klick bzw. "Alle" hebt den Filter auf. Kombinierbar mit Suchfeld und Dubletten-Filter.
+- Changelog: 1.8.0 - Neues Feld "Typ" (Team / Freilos) im Bearbeiten-Formular eines globalen Teams; Freilos-Teams werden in der Liste mit einer Markierung versehen.
 - Changelog: 1.7.1 - Sicherheitsfix: csrfField() in jedes POST-Formular eingefügt (CSRF-Schutz, siehe admin/bootstrap.php).
 - Changelog: 1.7.0 - Bugfix: Team-Verknüpfungen-Modal bietet jetzt eine explizite Richtungswahl ("Wer ist der heutige/aktuelle Name?") beim Anlegen einer Verknüpfung, plus ein Dropdown zum nachträglichen Ändern bei bestehenden Verknüpfungen – behebt, dass die "(heute...)"-Kennzeichnung im Teamvergleich vom Aufrufkontext abhing statt fest zu sein
 - Changelog: 1.6.1 - Der 🔗-Button zeigt jetzt eine kleine Zahlen-Markierung, wenn das Team bereits Verknüpfungen hat (siehe data_loader.php 1.7.2) – auf einen Blick erkennbar, ohne jedes Team einzeln öffnen zu müssen
@@ -914,6 +922,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## install.php
 
+- Changelog: 2.9.1 - teams_global: neue Spalte is_freilos (Neuinstallation und Migration bestehender Installationen).
 - Changelog: 2.9.0 - Die drei zuletzt offen gelassenen Härtungs-Ideen umgesetzt: (1) CSRF-Schutz fürs Installationsformular - pro Session ein Zufalls-Token (INSTALL_CSRF_TOKEN, session-basiert), als verstecktes Feld in Schritt 2 mitgeschickt und beim POST per hash_equals() geprüft (err_csrf_invalid bei Mismatch). (2) Mindestversion von MySQL/MariaDB wird jetzt explizit geprüft (checkServerVersionSupportsJson(), direkt nach dem Verbindungsaufbau, vor jedem Tabellen-Zugriff) - mindestens MySQL 5.7.8 bzw. MariaDB 10.2.7 wegen des JSON-Spaltentyps auf liga_partien.extra_data (Sport-Profile-Erweiterung); erkennt dabei auch den "5.5.5-"-Compat-Versionspräfix mancher MariaDB-Server. (3) Neuer Hinweis samt Bestätigungs-Checkbox, falls unter dem gewählten Host/Datenbankname/Tabellen-Präfix bereits eine Installation mit Daten liegt (detectExistingInstallation() - prüft, ob {prefix}admin_users existiert und mindestens einen Eintrag hat). Blockiert NICHT hart (eine Installation über eine bestehende DB bleibt ein bewusst unterstütztes Feature, z.B. um den Admin-Zugang zurückzusetzen), verlangt aber eine ausdrückliche Bestätigung (Checkbox "confirm_existing"), damit niemand aus Versehen eine falsche/fremde Datenbank überschreibt, nur weil Host/Name/Präfix zufällig übereinstimmen.
 
 - Changelog: 2.8.0 - Umfassende Überprüfung/Absicherung: (1) Schema-Vollständigkeit nachgezogen - drei komplett fehlende Tabellen ergänzt, die bisher nur über Laufzeit-Migrationen in admin/bootstrap.php entstanden (`team_links`, `addon_registry`, `addon_settings` - Letztere zwei für den Addon-Manager, der zu den Kernfunktionen zählt), sowie fehlende Spalten (`teams_global.url`, `admin_users.last_login`, `liga_partien.nicht_gewertet`/`gt_entscheidung`/`gt_grund`) inkl. passender ALTER-Migrationen für Bestandsinstallationen. (2) Neue Rechte-Vorabprüfung: legt vor den eigentlichen ~16 Tabellen eine Wegwerf-Tabelle an/ändert/löscht sie, um fehlende CREATE/ALTER/DROP-Rechte sofort mit klarer Meldung statt mitten im Ablauf zu erkennen. (3) Neue abschließende Konsistenzprüfung nach dem Schreiben: liest jede Tabelle per SHOW COLUMNS zurück und vergleicht sie mit den aus den CREATE-TABLE-Strings selbst extrahierten Erwartungen (verifyDatabaseConsistency(), extractTableNameFromSql(), extractExpectedColumns() - keine zweite, separat zu pflegende Spaltenliste) sowie ob der Administrator-Account wirklich angelegt wurde; bei Inkonsistenzen wird KEINE config.php geschrieben, sondern ein klarer Fehler angezeigt. Dabei nebenbei einen vorbestehenden Formatierungsfehler in der liga_archiv_folders-Definition behoben (fehlendes Leerzeichen nach `beschreibung`, hätte die neue Prüfung sonst fälschlich als fehlende Spalte gemeldet). (4) Composer-Rückfall auf eine mitgelieferte bin/composer.phar entfernt - installComposerDependencies() versucht jetzt ausschließlich ein systemweit installiertes composer-Kommando; schlägt das fehl oder ist keins vorhanden, wird direkt (ohne PHP-CLI-Suche, ohne .phar) auf die klassische config.php zurückgefallen. findPhpCli() dadurch komplett entfernt, COMPOSER_PHAR-Konstante entfernt, der komplette bin/-Ordner (composer.phar + dessen .htaccess) aus dem Core gelöscht. composerStatus() (vorher totes, nie aufgerufenes Feld) jetzt als sichtbarer, optionaler Check in Schritt 1 verwendet, damit transparent ist, welcher der beiden gleichwertigen Wege genutzt wird. (5) Weitere Härtung: config.php wird nach dem Schreiben jetzt wie die .env-Variante auf chmod 640 gesetzt (enthält DB-Zugangsdaten, vorher ungeschützt). Kritischer Sicherheitsfix: install.php verweigert jetzt von vornherein die Ausführung, falls bereits eine config.php existiert (renderAlreadyInstalledPage(), kein Bypass-Parameter) - vorher hätte ein liegen gebliebenes install.php (z.B. weil das automatische Selbst-Löschen in selfDestructAndRedirect() aus irgendeinem Grund fehlschlug) auf einer LIVE-Installation jedem, der die URL findet, erlaubt, über das Formular einen neuen Administrator-Zugang mit selbstgewähltem Passwort zu setzen.
@@ -944,6 +953,9 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/de.php
 
+- Changelog: 1.58.3 - Neuer Schlüssel teams_letter_all.
+- Changelog: 1.58.2 - Neue Schlüssel teams_field_typ, teams_typ_team, teams_typ_freilos, teams_typ_freilos_hint.
+- Changelog: 1.58.1 - Neuer Schlüssel sp_title_report_link (Tooltip am Feld "Link zum Spielbericht").
 - Changelog: 1.58.0 - Neue Schlüssel sp_btn_freilos_short/sp_freilos_label für den 3-Stufen-KO-Picker, sp_tooltip_toggle_team_placeholder aktualisiert.
 - Changelog: 1.57.1 - Beschriftung des Notizfelds im KO-Eingabeformular von "📍 Spielort" zu "📝 Notiz zum Spiel" geändert - das Feld ist im Datenmodell ein freies Notizfeld (liga_partien.notiz), kein Standortfeld.
 - Changelog: 1.57.0 - Neuer Schlüssel ls_opt_target_top.
@@ -1065,6 +1077,9 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/admin/en.php
 
+- Changelog: 1.57.3 - Matching new key teams_letter_all, see lang/admin/de.php 1.58.3.
+- Changelog: 1.57.2 - Matching new keys, see lang/admin/de.php 1.58.2.
+- Changelog: 1.57.1 - New key sp_title_report_link, see lang/admin/de.php 1.58.1.
 - Changelog: 1.57.0 - Matching new/updated keys, see lang/admin/de.php 1.58.0.
 - Changelog: 1.56.1 - Matching English label change, see lang/admin/de.php 1.57.1.
 - Changelog: 1.56.0 - New key ls_opt_target_top.
@@ -1185,6 +1200,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## lang/frontend/de.php
 
+- Changelog: 1.63.2 - Schlüssel liga_info_title ("LMOnext – Version {version}") wieder ergänzt - fehlte in der deutschen Sprachdatei, dadurch hätte die Überschrift der Info-Seite sonst den rohen Schlüsselnamen gezeigt.
 - Changelog: 1.63.1 - Info-Text überarbeitet (Copyright um Torsten Hofmann ergänzt und neuer Schlüssel liga_info_link_github.
 - Changelog: 1.63.0 - Neuer Schlüssel liga_freilos_label ("Freilos") für die Anzeige von Freilos-Begegnungen bei KO-Turnieren.
 - Changelog: 1.62.0 - Neue Schlüssel liga_weekday_full_1..7 (volle Wochentagsnamen) und liga_month_short_1..12 (kurze Monatsnamen), ergänzen die bereits vorhandenen liga_weekday_mo..so/liga_month_1..12 - siehe TeamFormattingTrait.php 1.8.0.
@@ -1470,6 +1486,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/Eternal/EternalTableService.php
 
+- Changelog: 1.3.0 - Neues Feature: Teams, die in "Teams (global)" als Typ "Freilos" gekennzeichnet sind (teams_global.is_freilos = 1, z.B. Platzhalter wie "Z_Freilos01" für KO-Turniere mit weniger als 16 Teams), werden aus der Ewigen Tabelle und dem Mehrjahresvergleich ausgeblendet (neue Methode freilosTeamIds(), Filter in eternalStandings() und seasonMatrix()). Fehlt die Spalte noch, wird nichts gefiltert.
 - Changelog: 1.2.0 - Neues Feature (im Rahmen der Integrationsprüfung des ewige-tabelle-Addons): neue Methode resolveTeamLinkGroups() berücksichtigt bereits im Admin-Bereich hinterlegte Team-Verknüpfungen (Umbenennung/Fusion/Abspaltung, siehe team_links-Tabelle, admin/bootstrap.php addTeamLink()). eternalStandings() und seasonMatrix() fassen verknüpfte Teams jetzt automatisch unter ihrer kanonischen (aktuellen) Team-ID zusammen statt sie getrennt zu zählen; eternalStandings() liefert zusätzlich das Feld 'former_names' (Namen, unter denen dieselbe verknüpfte Mannschaft in den ausgewählten Ligen sonst noch auftrat) - die Darstellung selbst obliegt bewusst dem aufrufenden Addon, dieser Core-Service besitzt keine eigenen Sprachschlüssel. Auflösung nach demselben Prinzip wie HeadToHead::resolveLinkedTeamIds()/resolveCanonicalTeamId() im teamvergleich-Addon (transitive BFS-Gruppierung, dann "wird abgelöst durch"-Kette über newer_team_id auflösen, Fallback bei uneindeutiger Richtung: höchste Team-ID der Gruppe), hier unabhängig implementiert - team_links ist eine reine Core-Tabelle, es besteht bewusst keine Abhängigkeit zwischen den beiden Standalone-Addons.
 - Changelog: 1.1.0 - Strafpunkte/Straftore/Korrekturen werden jetzt über alle Saisons aufsummiert und die Begründungen gesammelt (Beitrag Torsten Hofmann), für die neue Fußnoten-Anzeige in der Ewigen Tabelle (siehe addon/mini/lmo-ewigetab.php).
 - Changelog: 1.0.1 - $ligaId an LigaService::computeStandings() übergeben, damit admin-seitig hinterlegte Strafpunkte/Straftore (siehe StandingsTrait.php 1.1.0) auch in der Ewigen Tabelle korrekt in die historischen Punkte einfließen, statt dort ignoriert zu werden
@@ -1496,6 +1513,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/RenderViewsTrait.php
 
+- Changelog: 1.39.3 - renderPartieRow() nutzt für den Spielbericht-Link jetzt TeamFormattingTrait::safeReportUrl() statt der festen Prüfung auf "http(s)://" - relative URLs werden damit angezeigt.
 - Changelog: 1.39.2 - renderInfoView() übergibt zusätzlich LinkGithub an das Info-Template.
 - Changelog: 1.39.1 - Neues 📝-Symbol in der Ergebnisliste (renderPartieRow()), zeigt den Inhalt von liga_partien.notiz als Hover-Tooltip, sofern vorhanden - bisher wurde dieses Feld (im KO-Formular bisher "Spielort" beschriftet, im Datenmodell aber ein freies Notizfeld) nirgends im Frontend angezeigt.
 - Changelog: 1.39.0 - Die Kreuztabellen-Kopfzeile übergibt jetzt den vollen Teamnamen als Titel an renderTeamLogoImg() (siehe TeamFormattingTrait.php 1.10.0) - zeigt den Mannschaftsnamen als Tooltip beim Hovern über das Wappen, da dort sonst kein begleitender Text sichtbar ist.
@@ -1583,6 +1601,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## src/Liga/TeamFormattingTrait.php
 
+- Changelog: 1.12.1 - Neue Funktion safeReportUrl() für den "Link zum Spielbericht" (eine URL ohne "http(s)://" wurde bisher pauschal verworfen). Erlaubt jetzt absolute http(s)-URLs UND relative URLs ohne Schema ("berichte/x.html", "/berichte/x.html", "../x.pdf", "//host/x", "?x", "#x"). Jedes andere Schema (javascript:, data:, vbscript:, file:, mailto: ...) wird weiterhin abgelehnt, ebenso jede URL mit Steuerzeichen (Tab/Zeilenumbruch) - Browser entfernen diese beim Parsen stillschweigend, ein "java<TAB>script:" sähe sonst wie ein harmloser relativer Pfad aus.
 - Changelog: 1.12.0 - Beitrag: Nutzeranfrage - neues assets/img/freilos.svg (weiße Flagge, Platzhalter-Symbol) wird bei aktivierten Mannschaftslogos jetzt anstelle eines Teamwappens gezeigt, wenn die jeweilige Seite ein Freilos ist. Neue gemeinsame Hilfsfunktion resolveSideLogoHtml(), genutzt von partieTeamNameWithLogo()/-Reversed() - wirkt dadurch automatisch überall, wo diese beiden Funktionen bereits verwendet werden (Ergebnisse, KO-Finalrunden-Gruppierung, Team-Spielplan).
 - Changelog: 1.11.0 - partieTeamName() übersetzt den Freilos-Marker (KO_FREILOS_MARKER) jetzt zentral in den sichtbaren Text "Freilos" (tf('liga_freilos_label')) - gilt automatisch für jede Ausgabestelle (Ergebnisse, Spielplan, Kreuztabelle), ohne dass jede einzelne Stelle das selbst prüfen müsste. Dafür partieIsEmptyPlaceholder()/partieHasEmptySide() auf eine neue, gemeinsame Hilfsfunktion partieSideIsEmptyRaw() umgestellt, die bewusst auf dem ROHEN Label statt dem (jetzt übersetzten) Anzeigenamen prüft - sonst hätte die neue Übersetzung das Ausblenden leerer Begegnungen auf der Ergebnisseite (siehe vorheriger Changelog-Eintrag) wieder außer Kraft gesetzt, da "Freilos" als Text ja nicht mehr leer aussieht.
 - Changelog: 1.10.1 - Neue Funktion partieHasEmptySide() (Beitrag: Nutzeranfrage - Freilose bei KO-Turnieren sollen auf der Ergebnisliste nicht angezeigt werden). Anders als partieIsEmptyPlaceholder() (verlangt BEIDE Seiten leer) reicht hier bereits EINE leere Seite.
@@ -1829,6 +1848,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## template/default/layout.tpl.php
 
+- Changelog: 1.19.4 - Farbe der Form-Punkte bei einer Niederlage (.form-loss) von #1f2937 auf #ef4444 (rot) geändert - das dunkle Blau-Grau war auf dunklem Hintergrund (dark-Theme) praktisch nicht zu erkennen. Rot ist als Verlust-Farbe üblich und passt zu Sieg (grün) und Unentschieden (grau); in allen fünf Themes einheitlich geändert.
 - Changelog: 1.19.3 - Gleicher Mobile-Breakpoint (max-width:480px) für .schedule-sidebar/.team-sidebar-item/.schedule-content wie im matchday-Template: schmalere feste Breite (104px statt 170px) sowie kleinere Schrift/Innenabstände, damit die Termin-Spalte der Spielplan-Ansicht auf Handy-Breite nicht mehr auf einen schmalen Rest zusammengequetscht wird.
 - Changelog: 1.17.16 - .liga-ticker-CSS komplett entfernt (als eigenständiges Addon "ticker" ausgegliedert) - lebt jetzt als Inline-<style>-Block im Hook-Ergebnis (addon/ticker/TickerRenderer.php), da das Addon keinen festen Platz mehr im Core-Template-CSS hat.
 - Changelog: 1.17.15 - .liga-ticker/.liga-ticker-text CSS komplett auf einen echten CSS-Marquee-Scroll umgebaut (siehe src/Liga/RenderViewsTrait.php 1.23.0 und das neue ticker_block.tpl.php 2.0.0) - Viewport mit overflow:hidden + Track mit @keyframes-Animation (translateX 0 -> -50%, Text im Partial dupliziert für nahtlosen Loop), pausiert bei :hover, respektiert prefers-reduced-motion (Animation aus, normaler horizontaler Scroll-Container, Duplikat ausgeblendet).
@@ -1857,6 +1877,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## template/colored/layout.tpl.php
 
+- Changelog: 1.8.4 - Farbe der Form-Punkte bei einer Niederlage (.form-loss) von #1f2937 auf #ef4444 (rot) geändert - das dunkle Blau-Grau war auf dunklem Hintergrund (dark-Theme) praktisch nicht zu erkennen. Rot ist als Verlust-Farbe üblich und passt zu Sieg (grün) und Unentschieden (grau); in allen fünf Themes einheitlich geändert.
 - Changelog: 1.8.3 - Gleicher Mobile-Breakpoint (max-width:480px) für .schedule-sidebar/.team-sidebar-item/.schedule-content wie im matchday-Template: schmalere feste Breite (104px statt 170px) sowie kleinere Schrift/Innenabstände, damit die Termin-Spalte der Spielplan-Ansicht auf Handy-Breite nicht mehr auf einen schmalen Rest zusammengequetscht wird.
 - Changelog: 1.6.13 - Gleicher CSS-Fix wie template/default/layout.tpl.php 1.17.13.
 - Changelog: 1.6.12 - Gleiche neue CSS-Regeln .gt-footnote/.gt-footnote-line wie template/default/layout.tpl.php 1.17.12.
@@ -1882,6 +1903,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## template/dark/layout.tpl.php
 
+- Changelog: 1.7.4 - Farbe der Form-Punkte bei einer Niederlage (.form-loss) von #1f2937 auf #ef4444 (rot) geändert - das dunkle Blau-Grau war auf dunklem Hintergrund (dark-Theme) praktisch nicht zu erkennen. Rot ist als Verlust-Farbe üblich und passt zu Sieg (grün) und Unentschieden (grau); in allen fünf Themes einheitlich geändert.
 - Changelog: 1.7.3 - Gleicher Mobile-Breakpoint (max-width:480px) für .schedule-sidebar/.team-sidebar-item/.schedule-content wie im matchday-Template: schmalere feste Breite (104px statt 170px) sowie kleinere Schrift/Innenabstände, damit die Termin-Spalte der Spielplan-Ansicht auf Handy-Breite nicht mehr auf einen schmalen Rest zusammengequetscht wird.
 - Changelog: 1.5.13 - Gleicher CSS-Fix wie template/default/layout.tpl.php 1.17.13.
 - Changelog: 1.5.12 - Gleiche neue CSS-Regeln .gt-footnote/.gt-footnote-line wie template/default/layout.tpl.php 1.17.12.
@@ -1907,6 +1929,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## template/light/layout.tpl.php
 
+- Changelog: 1.7.4 - Farbe der Form-Punkte bei einer Niederlage (.form-loss) von #1f2937 auf #ef4444 (rot) geändert - das dunkle Blau-Grau war auf dunklem Hintergrund (dark-Theme) praktisch nicht zu erkennen. Rot ist als Verlust-Farbe üblich und passt zu Sieg (grün) und Unentschieden (grau); in allen fünf Themes einheitlich geändert.
 - Changelog: 1.7.3 - Gleicher Mobile-Breakpoint (max-width:480px) für .schedule-sidebar/.team-sidebar-item/.schedule-content wie im matchday-Template: schmalere feste Breite (104px statt 170px) sowie kleinere Schrift/Innenabstände, damit die Termin-Spalte der Spielplan-Ansicht auf Handy-Breite nicht mehr auf einen schmalen Rest zusammengequetscht wird.
 - Changelog: 1.5.13 - Gleicher CSS-Fix wie template/default/layout.tpl.php 1.17.13.
 - Changelog: 1.5.12 - Gleiche neue CSS-Regeln .gt-footnote/.gt-footnote-line wie template/default/layout.tpl.php 1.17.12.
@@ -1932,6 +1955,7 @@ Mit der Integration des Addon-Manager-Frameworks (Beitrag Torsten Hofmann, siehe
 
 ## template/matchday/layout.tpl.php
 
+- Changelog: 1.5.1 - Farbe der Form-Punkte bei einer Niederlage (.form-loss) von #1f2937 auf #ef4444 (rot) geändert - das dunkle Blau-Grau war auf dunklem Hintergrund (dark-Theme) praktisch nicht zu erkennen. Rot ist als Verlust-Farbe üblich und passt zu Sieg (grün) und Unentschieden (grau); in allen fünf Themes einheitlich geändert.
 - Changelog: 1.5.0 - Neuer Mobile-Breakpoint (max-width:480px) für .schedule-sidebar/.team-sidebar-item/.schedule-content: schmalere feste Breite (104px statt 176px) sowie kleinere Schrift/Innenabstände, damit die Termin-Spalte der Spielplan-Ansicht auf Handy-Breite nicht mehr auf einen schmalen Rest zusammengequetscht wird.
 - Changelog: 1.2.16 - Gleiche Entfernung wie template/default/layout.tpl.php 1.17.16.
 - Changelog: 1.2.15 - Gleicher CSS-Marquee-Umbau wie template/default/layout.tpl.php 1.17.15, mit den für dieses Template üblichen Farbvariablen (--ink/--bg-alt).
